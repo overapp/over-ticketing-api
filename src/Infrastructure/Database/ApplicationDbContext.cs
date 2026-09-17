@@ -1,5 +1,4 @@
 ﻿using Application.Abstractions.Data;
-using Domain.Todos;
 using Domain.Users;
 using Infrastructure.DomainEvents;
 using Microsoft.AspNetCore.Identity;
@@ -23,8 +22,6 @@ public sealed class ApplicationDbContext(
         IdentityUserToken<Guid>>(options), IApplicationDbContext
 {
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-
-    public DbSet<TodoItem> TodoItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
