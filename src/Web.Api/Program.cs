@@ -10,7 +10,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-builder.Services.AddSwaggerGenWithAuth();
+builder.Services.AddOpenApiDocumentation();
 
 builder.Services
     .AddApplication()
@@ -29,7 +29,8 @@ app.MapEndpoints();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwaggerWithUi();
+    app.MapOpenApi();
+    app.UseScalarUi();
 
     app.ApplyMigrations();
 }

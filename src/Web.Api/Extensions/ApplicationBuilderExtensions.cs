@@ -1,11 +1,17 @@
-﻿namespace Web.Api.Extensions;
+﻿using Scalar.AspNetCore;
+
+namespace Web.Api.Extensions;
 
 public static class ApplicationBuilderExtensions
 {
-    public static IApplicationBuilder UseSwaggerWithUi(this WebApplication app)
+    public static IApplicationBuilder UseScalarUi(this WebApplication app)
     {
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        app.MapScalarApiReference("/api/docs", options =>
+        {
+            options
+                .WithTitle("OverTicketing API")
+                .WithTheme(ScalarTheme.Default);
+        });
 
         return app;
     }
