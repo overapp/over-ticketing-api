@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions.Data;
+using Domain.Organizations;
 using Domain.Users;
 using Infrastructure.DomainEvents;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +22,8 @@ public sealed class ApplicationDbContext(
         IdentityRoleClaim<Guid>,
         IdentityUserToken<Guid>>(options), IApplicationDbContext
 {
+    public DbSet<Organization> Organizations { get; set; }
+
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)

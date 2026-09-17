@@ -1,4 +1,5 @@
 using Application.Abstractions.Data;
+using Domain.Organizations;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,8 @@ namespace Application.UnitTests.Abstractions;
 public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
     : DbContext(options), IApplicationDbContext
 {
+    public DbSet<Organization> Organizations { get; set; }
+
     public DbSet<User> Users { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
