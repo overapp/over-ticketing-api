@@ -22,7 +22,7 @@ A pragmatic Clean Architecture starter for **.NET 10**. Batteries included, opin
   - **Rate limiting** (configurable global + authentication policies)
   - **OpenTelemetry** logs, tracing, and metrics (ASP.NET Core, HTTP, SQL Client, runtime)
   - Global exception handling and `ProblemDetails`
-  - Swagger / OpenAPI with JWT support
+  - OpenAPI + Scalar UI with JWT support
 - **Aspire** AppHost and service defaults
   - SQL Server provisioning
   - Aspire dashboard for OpenTelemetry signals
