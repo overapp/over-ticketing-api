@@ -23,8 +23,6 @@ public static class MigrationExtensions
         using IServiceScope scope = app.ApplicationServices.CreateScope();
 
         RoleManager<Role> roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
-        UserManager<User> userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-
-        await IdentitySeeder.SeedAsync(roleManager, userManager);
+        await IdentitySeeder.SeedAsync(roleManager);
     }
 }
