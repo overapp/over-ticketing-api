@@ -8,7 +8,7 @@ A pragmatic Clean Architecture starter for **.NET 10**. Batteries included, opin
 - **Domain** layer with sample entities and domain events.
 - **Application** layer with abstractions for:
   - CQRS (lightweight, MediatR-free command/query handlers)
-  - Example use cases (Todos and Users)
+  - User management use cases
   - Cross-cutting concerns (logging, validation) implemented as decorators
 - **Infrastructure** layer with:
   - ASP.NET Core **Identity** (users, roles, claims) with EF Core stores, mapped to a dedicated `identity` schema without the default `AspNet*` table prefixes
