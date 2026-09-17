@@ -1,0 +1,51 @@
+{
+  "repo_root": "/Users/matt/Projects/overapp/oa-ai.skills",
+  "stack": "backend_net",
+  "mode": "link",
+  "version": "a2ef8fb73f98d62513f2429d51040df597bab94a",
+  "links": [
+    {
+      "target": "core/BASE_INSTRUCTION.md",
+      "source": "/Users/matt/Projects/overapp/oa-ai.skills/instructions/core/BASE_INSTRUCTION.md",
+      "hash": "72943df7c1dd4ca22f73369560b09cad22f54d15d77fbd9ec4763b300a52479d",
+      "kind": "core"
+    },
+    {
+      "target": "stacks/backend_net/INSTRUCTIONS_backend_net.md",
+      "source": "/Users/matt/Projects/overapp/oa-ai.skills/instructions/stacks/backend_net/INSTRUCTIONS_backend_net.md",
+      "hash": "6dd0a22884290d588066c8f0a02cd801db32046ad7509077b05ab940c0bd16dd",
+      "kind": "stack"
+    },
+    {
+      "target": "stacks/backend_net/ARCHITECTURE.md",
+      "source": "/Users/matt/Projects/overapp/oa-ai.skills/instructions/stacks/backend_net/ARCHITECTURE.md",
+      "hash": "3bde498cad4e8de3a111699a450f8198aed66508c2131b5d08d59c29887c0cdd",
+      "kind": "stack"
+    },
+    {
+      "target": "stacks/backend_net/DATABASE.md",
+      "source": "/Users/matt/Projects/overapp/oa-ai.skills/instructions/stacks/backend_net/DATABASE.md",
+      "hash": "f2139122c48fcffb9a08e9b26492aad49359974b550f811847b7baca4b3ad7ca",
+      "kind": "stack"
+    },
+    {
+      "target": "stacks/backend_net/SECURITY.md",
+      "source": "/Users/matt/Projects/overapp/oa-ai.skills/instructions/stacks/backend_net/SECURITY.md",
+      "hash": "04e6e85625ab09b84e8d3703054b9fdf4904bb7241e465999b732d285bfbade1",
+      "kind": "stack"
+    },
+    {
+      "target": "stacks/backend_net/TESTING.md",
+      "source": "/Users/matt/Projects/overapp/oa-ai.skills/instructions/stacks/backend_net/TESTING.md",
+      "hash": "b082d01de5b7c9ef9d96982e19a83172b6e99c46060f53f66c1f604614298d12",
+      "kind": "stack"
+    }
+  ],
+  "aliases": [
+    "CLAUDE.md",
+    ".github/copilot-instructions.md"
+  ],
+  "generated": [
+    "AGENTS.md"
+  ]
+}
