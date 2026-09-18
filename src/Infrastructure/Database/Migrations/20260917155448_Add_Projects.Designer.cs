@@ -4,6 +4,7 @@ using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260917155448_Add_Projects")]
+    partial class Add_Projects
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -84,40 +87,6 @@ namespace Infrastructure.Database.Migrations
                         .HasDatabaseName("ix_projects_organization_id");
 
                     b.ToTable("projects", "dbo");
-                });
-
-            modelBuilder.Entity("Domain.Projects.ProjectAssignment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("ProjectId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("project_id");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)")
-                        .HasColumnName("role");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_project_assignments");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_project_assignments_user_id");
-
-                    b.HasIndex("ProjectId", "UserId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_project_assignments_project_id_user_id");
-
-                    b.ToTable("project_assignments", "dbo");
                 });
 
             modelBuilder.Entity("Domain.Users.RefreshToken", b =>
@@ -419,27 +388,6 @@ namespace Infrastructure.Database.Migrations
                         .HasConstraintName("fk_projects_organizations_organization_id");
                 });
 
-            modelBuilder.Entity("Domain.Projects.ProjectAssignment", b =>
-                {
-                    b.HasOne("Domain.Projects.Project", "Project")
-                        .WithMany("ProjectAssignments")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_project_assignments_projects_project_id");
-
-                    b.HasOne("Domain.Users.User", "User")
-                        .WithMany("ProjectAssignments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_project_assignments_users_user_id");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Domain.Users.RefreshToken", b =>
                 {
                     b.HasOne("Domain.Users.User", "User")
@@ -512,16 +460,6 @@ namespace Infrastructure.Database.Migrations
             modelBuilder.Entity("Domain.Organizations.Organization", b =>
                 {
                     b.Navigation("Projects");
-                });
-
-            modelBuilder.Entity("Domain.Projects.Project", b =>
-                {
-                    b.Navigation("ProjectAssignments");
-                });
-
-            modelBuilder.Entity("Domain.Users.User", b =>
-                {
-                    b.Navigation("ProjectAssignments");
                 });
 #pragma warning restore 612, 618
         }

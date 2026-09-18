@@ -4,5 +4,7 @@ public static class Tags
 {
     public const string Organizations = "Organizations";
 
+    public const string Projects = "Projects";
+
     public const string Users = "Users";
 }

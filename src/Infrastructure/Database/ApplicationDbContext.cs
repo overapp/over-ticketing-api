@@ -1,5 +1,6 @@
 ﻿using Application.Abstractions.Data;
 using Domain.Organizations;
+using Domain.Projects;
 using Domain.Users;
 using Infrastructure.DomainEvents;
 using Microsoft.AspNetCore.Identity;
@@ -23,6 +24,10 @@ public sealed class ApplicationDbContext(
         IdentityUserToken<Guid>>(options), IApplicationDbContext
 {
     public DbSet<Organization> Organizations { get; set; }
+
+    public DbSet<Project> Projects { get; set; }
+
+    public DbSet<ProjectAssignment> ProjectAssignments { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 

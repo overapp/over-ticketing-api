@@ -28,6 +28,13 @@ internal sealed class RegisterUserCommandHandler(UserManager<User> userManager)
             return Result.Failure<Guid>(IdentityErrorMapper.MapFirst(result.Errors));
         }
 
+        IdentityResult addToRoleResult = await userManager.AddToRoleAsync(user, RoleNames.User);
+
+        if (!addToRoleResult.Succeeded)
+        {
+            return Result.Failure<Guid>(IdentityErrorMapper.MapFirst(addToRoleResult.Errors));
+        }
+
         return user.Id;
     }
 }

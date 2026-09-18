@@ -7,25 +7,40 @@ namespace Infrastructure.Identity;
 
 public static class IdentitySeeder
 {
-    private const string AdministratorRoleName = "Admin";
     private const string PermissionClaimType = "permission";
 
     public static async Task SeedAsync(RoleManager<Role> roleManager)
     {
-        Role? administratorRole = await roleManager.FindByNameAsync(AdministratorRoleName);
+        await SeedRoleAsync(roleManager, RoleNames.User, []);
+        await SeedRoleAsync(roleManager, RoleNames.Support, []);
+        await SeedRoleAsync(roleManager, RoleNames.Admin, [.. Permissions.Organizations.All, .. Permissions.Projects.All]);
+        roleManager,
+            administratorRole,
+            );
+    }
 
-        if (administratorRole is null)
+    private static async Task SeedRoleAsync(RoleManager<Role> roleManager, string roleName, IReadOnlyCollection<string> permissions)
+    {
+        Role? role = await roleManager.FindByNameAsync(roleName);
+
+        if (role is not null)
         {
-            administratorRole = new Role(AdministratorRoleName);
-            IdentityResult createRoleResult = await roleManager.CreateAsync(administratorRole);
-
-            if (!createRoleResult.Succeeded)
-            {
-                throw new InvalidOperationException("Failed to seed the Admin role.");
-            }
+            return;
         }
 
-        await SeedPermissionsAsync(roleManager, administratorRole, Permissions.Organizations.All);
+        IdentityResult createRoleResult = await roleManager.CreateAsync(new Role(roleName));
+
+        if (!createRoleResult.Succeeded)
+        {
+            throw new InvalidOperationException($"Failed to seed the {roleName} role.");
+        }
+
+        Role newRole = await roleManager.FindByNameAsync(roleName);
+
+        if (permissions is not null && permissions.Any())
+        {
+            await SeedPermissionsAsync(roleManager, newRole!, permissions);
+        }
     }
 
     private static async Task SeedPermissionsAsync(

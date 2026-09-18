@@ -401,3 +401,5 @@ FodyWeavers.xsd
 
 # oa — overlay personale, non versionato
 .oa/DEVELOPER.md
+
+.idea/
