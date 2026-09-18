@@ -1,3 +1,4 @@
+using Domain.Projects;
 using SharedKernel;
 
 namespace Domain.Organizations;
@@ -11,4 +12,6 @@ public sealed class Organization : Entity
     public string Logo { get; set; } = string.Empty;
 
     public OrganizationStatus Status { get; set; } = OrganizationStatus.Active;
+
+    public ICollection<Project> Projects { get; set; } = [];
 }

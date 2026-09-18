@@ -50,6 +50,8 @@ public sealed class RegisterUserCommandHandlerTests : BaseHandlerTest
 
                 return IdentityResult.Success;
             });
+        userManager.AddToRoleAsync(Arg.Any<User>(), RoleNames.User)
+            .Returns(IdentityResult.Success);
 
         var handler = new RegisterUserCommandHandler(userManager);
 
@@ -62,5 +64,6 @@ public sealed class RegisterUserCommandHandlerTests : BaseHandlerTest
         User user = await context.Users.SingleAsync(u => u.Id == result.Value);
         user.Email.ShouldBe(Command.Email);
         user.DomainEvents.ShouldContain(domainEvent => domainEvent is UserRegisteredDomainEvent);
+        await userManager.Received(1).AddToRoleAsync(user, RoleNames.User);
     }
 }

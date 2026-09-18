@@ -1,5 +1,6 @@
 using Application.Abstractions.Data;
 using Domain.Organizations;
+using Domain.Projects;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,8 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
     : DbContext(options), IApplicationDbContext
 {
     public DbSet<Organization> Organizations { get; set; }
+
+    public DbSet<Project> Projects { get; set; }
 
     public DbSet<User> Users { get; set; }
 

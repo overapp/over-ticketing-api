@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Domain.Projects;
+using Microsoft.AspNetCore.Identity;
 using SharedKernel;
 
 namespace Domain.Users;
@@ -15,6 +16,8 @@ public sealed class User : IdentityUser<Guid>, IHasDomainEvents
     public string FirstName { get; set; }
 
     public string LastName { get; set; }
+
+    public ICollection<ProjectAssignment> ProjectAssignments { get; set; } = [];
 
     public List<IDomainEvent> DomainEvents => [.. _domainEvents];
 
