@@ -1,6 +1,7 @@
 using Domain.Organizations;
 using Domain.Projects;
 using Domain.Users;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Abstractions.Data;
@@ -11,6 +12,8 @@ public interface IApplicationDbContext
     DbSet<Project> Projects { get; }
     DbSet<User> Users { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<Role> Roles { get; }
+    DbSet<IdentityUserRole<Guid>> UserRoles { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

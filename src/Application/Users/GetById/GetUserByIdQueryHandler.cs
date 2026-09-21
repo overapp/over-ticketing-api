@@ -1,4 +1,3 @@
-﻿using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Domain.Users;
@@ -7,24 +6,21 @@ using SharedKernel;
 
 namespace Application.Users.GetById;
 
-internal sealed class GetUserByIdQueryHandler(IApplicationDbContext context, IUserContext userContext)
+internal sealed class GetUserByIdQueryHandler(IApplicationDbContext context)
     : IQueryHandler<GetUserByIdQuery, UserResponse>
 {
     public async Task<Result<UserResponse>> Handle(GetUserByIdQuery query, CancellationToken cancellationToken)
     {
-        if (query.UserId != userContext.UserId)
-        {
-            return Result.Failure<UserResponse>(UserErrors.Unauthorized());
-        }
-
-        UserResponse? user = await context.Users
+        var user = await context.Users
+            .AsNoTracking()
             .Where(u => u.Id == query.UserId)
-            .Select(u => new UserResponse
+            .Select(u => new
             {
-                Id = u.Id,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
-                Email = u.Email!
+                u.Id,
+                u.FirstName,
+                u.LastName,
+                Email = u.Email ?? string.Empty,
+                u.EmailConfirmed
             })
             .SingleOrDefaultAsync(cancellationToken);
 
@@ -33,6 +29,20 @@ internal sealed class GetUserByIdQueryHandler(IApplicationDbContext context, IUs
             return Result.Failure<UserResponse>(UserErrors.NotFound(query.UserId));
         }
 
-        return user;
+        List<string> roles = await (from ur in context.UserRoles
+                                    join r in context.Roles on ur.RoleId equals r.Id
+                                    where ur.UserId == query.UserId
+                                    select r.Name!)
+                                   .ToListAsync(cancellationToken);
+
+        return new UserResponse
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            EmailConfirmed = user.EmailConfirmed,
+            Roles = roles
+        };
     }
 }
