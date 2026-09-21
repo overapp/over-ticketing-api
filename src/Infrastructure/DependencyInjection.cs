@@ -25,20 +25,35 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration) =>
         services
-            .AddServices()
+            .AddServices(configuration)
             .AddDatabase(configuration)
             .AddHealthChecks(configuration)
             .AddIdentityInternal()
             .AddAuthenticationInternal(configuration)
             .AddAuthorizationInternal();
 
-    private static IServiceCollection AddServices(this IServiceCollection services)
+    private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
-        services.AddTransient<Application.Abstractions.Storage.IFileStorageService, Storage.LocalFileStorageService>();
+        services.Configure<Storage.AzureBlobStorageOptions>(options =>
+        {
+            configuration.GetSection(Storage.AzureBlobStorageOptions.SectionName).Bind(options);
+
+            string? connectionString =
+                configuration.GetConnectionString("blobs") ??
+                configuration.GetConnectionString("storage") ??
+                configuration.GetConnectionString("BlobStorage");
+
+            if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                options.ConnectionString = connectionString;
+            }
+        });
+
+        services.AddTransient<Application.Abstractions.Storage.IFileStorageService, Storage.AzureBlobStorageService>();
 
 #pragma warning disable EXTEXP0018 // HybridCache is released; the API is stable in .NET 10.
         services.AddHybridCache();

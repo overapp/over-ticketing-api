@@ -1,4 +1,5 @@
 using Aspire.Hosting.ApplicationModel;
+using Aspire.Hosting.Azure;
 
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
@@ -7,6 +8,13 @@ IResourceBuilder<SqlServerServerResource> sqlServer = builder
 
 IResourceBuilder<SqlServerDatabaseResource> database = sqlServer
     .AddDatabase("database");
+
+IResourceBuilder<AzureStorageResource> storage = builder
+    .AddAzureStorage("storage")
+    .RunAsEmulator();
+
+IResourceBuilder<AzureBlobStorageResource> blobs = storage
+    .AddBlobs("blobs");
 
 builder.AddProject<Projects.Web_Api>("web-api")
     .WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
@@ -18,7 +26,9 @@ builder.AddProject<Projects.Web_Api>("web-api")
     .WithEnvironment("RateLimiting__Global__PermitLimit", "100000")
     .WithEnvironment("RateLimiting__Authentication__PermitLimit", "100000")
     .WithReference(database)
+    .WithReference(blobs)
     .WithHttpHealthCheck("/health")
-    .WaitFor(database);
+    .WaitFor(database)
+    .WaitFor(blobs);
 
 await builder.Build().RunAsync();
