@@ -46,4 +46,14 @@ public static class Permissions
         public static IReadOnlyCollection<string> All { get; } =
             [Read, Create, Reply, Assign, StatusUpdate, PriorityUpdate];
     }
+
+    public static class Wiki
+    {
+        public const string Read = "wiki:read";
+        public const string Create = "wiki:create";
+        public const string Edit = "wiki:edit";
+        public const string Delete = "wiki:delete";
+
+        public static IReadOnlyCollection<string> All { get; } = [Read, Create, Edit, Delete];
+    }
 }

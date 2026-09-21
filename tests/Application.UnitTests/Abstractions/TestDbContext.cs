@@ -3,6 +3,7 @@ using Domain.Organizations;
 using Domain.Projects;
 using Domain.Tickets;
 using Domain.Users;
+using Domain.Wiki;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +27,8 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
     public DbSet<TicketMessage> TicketMessages { get; set; }
 
     public DbSet<TicketAttachment> TicketAttachments { get; set; }
+
+    public DbSet<WikiPage> WikiPages { get; set; }
 
     public DbSet<User> Users { get; set; }
 
