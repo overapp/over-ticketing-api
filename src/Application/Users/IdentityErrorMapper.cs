@@ -18,6 +18,7 @@ internal static class IdentityErrorMapper
         "PasswordRequiresUniqueChars" => UserErrors.PasswordRequiresUniqueChars,
         "InvalidEmail" => UserErrors.InvalidEmail,
         "InvalidUserName" => UserErrors.InvalidUserName,
+        "InvalidToken" => UserErrors.InvalidPasswordResetToken,
         _ => UserErrors.IdentityError(identityError.Code, identityError.Description)
     };
 

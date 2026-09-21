@@ -24,6 +24,10 @@ public static class UserErrors
         "Users.InvalidRefreshToken",
         "The provided refresh token is invalid or has expired");
 
+    public static readonly Error InvalidPasswordResetToken = Error.Validation(
+        "Users.InvalidPasswordResetToken",
+        "The provided password reset token is invalid or has expired");
+
     public static readonly Error DuplicateEmail = Error.Conflict(
         "Users.DuplicateEmail",
         "The provided email is already in use");
