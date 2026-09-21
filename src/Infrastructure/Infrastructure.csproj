@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" />
+    <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="EFCore.NamingConventions" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
@@ -17,6 +18,7 @@
 
   <ItemGroup>
 	<InternalsVisibleTo Include="ArchitectureTests" />
+	<InternalsVisibleTo Include="IntegrationTests" />
   </ItemGroup>
 
 </Project>

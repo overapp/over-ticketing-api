@@ -21,6 +21,16 @@ public sealed class IntegrationTestAppHost : IAsyncLifetime
         return _application.CreateHttpClient("web-api");
     }
 
+    public async Task<string?> GetConnectionStringAsync(string resourceName)
+    {
+        if (_application is null)
+        {
+            throw new InvalidOperationException("The Aspire test AppHost has not been initialized.");
+        }
+
+        return await _application.GetConnectionStringAsync(resourceName);
+    }
+
     public async Task InitializeAsync()
     {
         IDistributedApplicationTestingBuilder appHost =
