@@ -1,6 +1,7 @@
 ﻿using Application.Abstractions.Data;
 using Domain.Organizations;
 using Domain.Projects;
+using Domain.Tickets;
 using Domain.Users;
 using Infrastructure.DomainEvents;
 using Microsoft.AspNetCore.Identity;
@@ -28,6 +29,12 @@ public sealed class ApplicationDbContext(
     public DbSet<Project> Projects { get; set; }
 
     public DbSet<ProjectAssignment> ProjectAssignments { get; set; }
+
+    public DbSet<Ticket> Tickets { get; set; }
+
+    public DbSet<TicketMessage> TicketMessages { get; set; }
+
+    public DbSet<TicketAttachment> TicketAttachments { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 

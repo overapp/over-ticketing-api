@@ -16,7 +16,8 @@ public static class IdentitySeeder
         await SeedRoleAsync(roleManager, RoleNames.Admin, [
             .. Permissions.Organizations.All,
             .. Permissions.Projects.All,
-            .. Permissions.Users.All]);
+            .. Permissions.Users.All,
+            .. Permissions.Tickets.All]);
     }
 
     private static async Task SeedRoleAsync(RoleManager<Role> roleManager, string roleName, IReadOnlyCollection<string> permissions)

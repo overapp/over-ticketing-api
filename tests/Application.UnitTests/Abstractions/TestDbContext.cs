@@ -1,6 +1,7 @@
 using Application.Abstractions.Data;
 using Domain.Organizations;
 using Domain.Projects;
+using Domain.Tickets;
 using Domain.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,14 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
 
     public DbSet<Project> Projects { get; set; }
 
+    public DbSet<ProjectAssignment> ProjectAssignments { get; set; }
+
+    public DbSet<Ticket> Tickets { get; set; }
+
+    public DbSet<TicketMessage> TicketMessages { get; set; }
+
+    public DbSet<TicketAttachment> TicketAttachments { get; set; }
+
     public DbSet<User> Users { get; set; }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
@@ -31,5 +40,17 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<IdentityUserRole<Guid>>().HasKey(ur => new { ur.UserId, ur.RoleId });
+
+        modelBuilder.Entity<Project>().Ignore(p => p.Users);
+
+        modelBuilder.Entity<ProjectAssignment>()
+            .HasOne(pa => pa.Project)
+            .WithMany(p => p.ProjectAssignments)
+            .HasForeignKey(pa => pa.ProjectId);
+
+        modelBuilder.Entity<ProjectAssignment>()
+            .HasOne(pa => pa.User)
+            .WithMany(u => u.ProjectAssignments)
+            .HasForeignKey(pa => pa.UserId);
     }
 }
