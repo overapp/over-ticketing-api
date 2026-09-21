@@ -33,4 +33,17 @@ public static class Permissions
 
         public static IReadOnlyCollection<string> All { get; } = [Read, Create, Edit, Delete];
     }
+
+    public static class Tickets
+    {
+        public const string Read = "tickets:read";
+        public const string Create = "tickets:create";
+        public const string Reply = "tickets:reply";
+        public const string Assign = "tickets:assign";
+        public const string StatusUpdate = "tickets:status:update";
+        public const string PriorityUpdate = "tickets:priority:update";
+
+        public static IReadOnlyCollection<string> All { get; } =
+            [Read, Create, Reply, Assign, StatusUpdate, PriorityUpdate];
+    }
 }
