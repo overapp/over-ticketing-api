@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Exclude>[Web.Api]*,[AppHost]*,[ServiceDefaults]*,[*]*.Migrations.*,[*]*ModelSnapshot*,[*]*AzureQueueConsumerBackgroundService*,[*]*OutboxPublisherBackgroundService*</Exclude>
+          <ExcludeByFile>**/Migrations/**/*.cs,**/*ModelSnapshot.cs,**/obj/**/*.cs,**/obj/**/*.g.cs,**/AzureQueueConsumerBackgroundService.cs,**/OutboxPublisherBackgroundService.cs</ExcludeByFile>
+          <ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

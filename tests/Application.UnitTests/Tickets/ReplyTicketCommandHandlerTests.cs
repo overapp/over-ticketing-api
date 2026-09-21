@@ -1,5 +1,6 @@
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Storage;
+using Application.Tickets;
 using Application.Tickets.Reply;
 using Application.UnitTests.Abstractions;
 using Domain.Projects;
@@ -35,6 +36,202 @@ public sealed class ReplyTicketCommandHandlerTests : BaseHandlerTest
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(TicketErrors.NotFound(command.TicketId));
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnClosed_WhenTicketIsClosed()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        var userId = Guid.NewGuid();
+        _userContext.UserId.Returns(userId);
+
+        var project = new Project { Id = Guid.NewGuid(), Name = "Project", Status = ProjectStatus.Active };
+        var ticket = new Ticket
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            CreatedByUserId = userId,
+            Title = "Closed Ticket",
+            Status = TicketStatus.Closed
+        };
+        context.Projects.Add(project);
+        context.Tickets.Add(ticket);
+        await context.SaveChangesAsync();
+
+        var handler = new ReplyTicketCommandHandler(context, _userContext, _fileStorageService, _dateTimeProvider);
+        var command = new ReplyTicketCommand(ticket.Id, "Reply to closed");
+
+        // Act
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(TicketErrors.Closed(ticket.Id));
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnFailure_WhenUserNotInProject()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        var userId = Guid.NewGuid();
+        _userContext.UserId.Returns(userId);
+
+        var project = new Project { Id = Guid.NewGuid(), Name = "Project", Status = ProjectStatus.Active };
+        var ticket = new Ticket
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            CreatedByUserId = userId,
+            Title = "Ticket",
+            Status = TicketStatus.InProgress
+        };
+        context.Projects.Add(project);
+        context.Tickets.Add(ticket);
+        await context.SaveChangesAsync();
+
+        var handler = new ReplyTicketCommandHandler(context, _userContext, _fileStorageService, _dateTimeProvider);
+        var command = new ReplyTicketCommand(ticket.Id, "Reply");
+
+        // Act
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(TicketErrors.UserNotInProject(userId, project.Id));
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnUnauthorized_WhenUserIsNotSupportOrAdminAndNotCreator()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        var userId = Guid.NewGuid();
+        _userContext.UserId.Returns(userId);
+
+        var project = new Project { Id = Guid.NewGuid(), Name = "Project", Status = ProjectStatus.Active };
+        var assignment = new ProjectAssignment
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            UserId = userId,
+            Role = RoleNames.User
+        };
+        var ticket = new Ticket
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            CreatedByUserId = Guid.NewGuid(), // different user
+            Title = "Ticket",
+            Status = TicketStatus.InProgress
+        };
+        context.Projects.Add(project);
+        context.ProjectAssignments.Add(assignment);
+        context.Tickets.Add(ticket);
+        await context.SaveChangesAsync();
+
+        var handler = new ReplyTicketCommandHandler(context, _userContext, _fileStorageService, _dateTimeProvider);
+        var command = new ReplyTicketCommand(ticket.Id, "Reply");
+
+        // Act
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(TicketErrors.UnauthorizedAccess(ticket.Id));
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnUnauthorized_WhenUserIsNotSupportOrAdminAndReplyIsInternal()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        var userId = Guid.NewGuid();
+        _userContext.UserId.Returns(userId);
+
+        var project = new Project { Id = Guid.NewGuid(), Name = "Project", Status = ProjectStatus.Active };
+        var assignment = new ProjectAssignment
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            UserId = userId,
+            Role = RoleNames.User
+        };
+        var ticket = new Ticket
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            CreatedByUserId = userId,
+            Title = "Ticket",
+            Status = TicketStatus.InProgress
+        };
+        context.Projects.Add(project);
+        context.ProjectAssignments.Add(assignment);
+        context.Tickets.Add(ticket);
+        await context.SaveChangesAsync();
+
+        var handler = new ReplyTicketCommandHandler(context, _userContext, _fileStorageService, _dateTimeProvider);
+        var command = new ReplyTicketCommand(ticket.Id, "Internal Note", IsInternal: true);
+
+        // Act
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(TicketErrors.UnauthorizedAccess(ticket.Id));
+    }
+
+    [Fact]
+    public async Task Handle_Should_UploadAttachments_WhenAttachmentsProvided()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        var userId = Guid.NewGuid();
+        _userContext.UserId.Returns(userId);
+
+        var project = new Project { Id = Guid.NewGuid(), Name = "Project", Status = ProjectStatus.Active };
+        var assignment = new ProjectAssignment
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            UserId = userId,
+            Role = RoleNames.User
+        };
+        var ticket = new Ticket
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            CreatedByUserId = userId,
+            Title = "Ticket",
+            Status = TicketStatus.InProgress
+        };
+        context.Projects.Add(project);
+        context.ProjectAssignments.Add(assignment);
+        context.Tickets.Add(ticket);
+        await context.SaveChangesAsync();
+
+        _fileStorageService.UploadAsync(Arg.Any<Stream>(), "log.txt", "text/plain", Arg.Any<CancellationToken>())
+            .Returns("storage/log.txt");
+
+        using var memoryStream = new MemoryStream([1, 2, 3]);
+        var attachments = new List<FileUploadModel>
+        {
+            new("log.txt", "text/plain", 3, memoryStream)
+        };
+
+        var handler = new ReplyTicketCommandHandler(context, _userContext, _fileStorageService, _dateTimeProvider);
+        var command = new ReplyTicketCommand(ticket.Id, "Reply with attachment", IsInternal: false, Attachments: attachments);
+
+        // Act
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        TicketMessage createdMessage = await context.TicketMessages.Include(m => m.Attachments).SingleAsync(m => m.Id == result.Value);
+        createdMessage.Attachments.Count.ShouldBe(1);
+        createdMessage.Attachments.First().FileName.ShouldBe("log.txt");
+        createdMessage.Attachments.First().StoragePath.ShouldBe("storage/log.txt");
     }
 
     [Fact]
