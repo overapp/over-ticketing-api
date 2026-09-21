@@ -1,3 +1,4 @@
+using Application.Common.Validation;
 using FluentValidation;
 
 namespace Application.Tickets.Reply;
@@ -10,7 +11,8 @@ public sealed class ReplyTicketCommandValidator : AbstractValidator<ReplyTicketC
 
         RuleFor(command => command.Content)
             .NotEmpty()
-            .MaximumLength(10000);
+            .MaximumLength(10000)
+            .ValidMarkdown();
 
         RuleFor(command => command.Attachments)
             .Must(attachments => attachments is null || attachments.Count <= 5)
