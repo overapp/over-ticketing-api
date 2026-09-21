@@ -41,6 +41,8 @@ public sealed class ApplicationDbContext(
 
     public DbSet<WikiPage> WikiPages { get; set; }
 
+    public DbSet<UserSettings> UserSettings { get; set; }
+
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public DbSet<OutboxMessage> OutboxMessages { get; set; }

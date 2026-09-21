@@ -32,6 +32,8 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
 
     public DbSet<User> Users { get; set; }
 
+    public DbSet<UserSettings> UserSettings { get; set; }
+
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public DbSet<Role> Roles { get; set; }
@@ -55,5 +57,13 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
             .HasOne(pa => pa.User)
             .WithMany(u => u.ProjectAssignments)
             .HasForeignKey(pa => pa.UserId);
+
+        modelBuilder.Entity<UserSettings>()
+            .HasKey(s => s.UserId);
+
+        modelBuilder.Entity<UserSettings>()
+            .HasOne(s => s.User)
+            .WithOne(u => u.Settings)
+            .HasForeignKey<UserSettings>(s => s.UserId);
     }
 }

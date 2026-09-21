@@ -13,4 +13,6 @@ public static class Tags
     public const string Tickets = "Tickets";
 
     public const string Wiki = "Wiki";
+
+    public const string Settings = "Settings";
 }

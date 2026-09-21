@@ -255,4 +255,122 @@ public sealed class SendEmailTicketCreatedNotificationHandlerTests : BaseHandler
             Arg.Any<string>(),
             Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_Should_SkipSupportAndAdmin_WhenTheyDisabledNotifyOnTicketCreated()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+
+        var author = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "author@example.com",
+            FirstName = "Mario",
+            LastName = "Rossi"
+        };
+        var supportUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "support@example.com",
+            FirstName = "Luigi",
+            LastName = "Verdi"
+        };
+        var adminUser = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "admin@example.com",
+            FirstName = "Admin",
+            LastName = "Boss"
+        };
+
+        var adminRole = new Role(RoleNames.Admin) { Id = Guid.NewGuid() };
+        var userRole = new IdentityUserRole<Guid> { UserId = adminUser.Id, RoleId = adminRole.Id };
+
+        var project = new Project
+        {
+            Id = Guid.NewGuid(),
+            Name = "OverTicketing Project",
+            Status = ProjectStatus.Active
+        };
+
+        var projectAssignment = new ProjectAssignment
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            UserId = supportUser.Id,
+            Role = RoleNames.Support
+        };
+
+        var ticket = new Ticket
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            CreatedByUserId = author.Id,
+            Title = "Bug nel login",
+            Priority = TicketPriority.High,
+            Status = TicketStatus.New,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var message = new TicketMessage
+        {
+            Id = Guid.NewGuid(),
+            TicketId = ticket.Id,
+            AuthorUserId = author.Id,
+            Content = "Non riesco ad accedere",
+            CreatedAt = DateTime.UtcNow
+        };
+        ticket.Messages.Add(message);
+
+        // Support disabled notifications, Admin has no settings (defaults to true)
+        var supportSettings = new UserSettings
+        {
+            UserId = supportUser.Id,
+            NotifyOnTicketCreated = false,
+            NotifyOnTicketReply = true
+        };
+
+        context.Users.AddRange(author, supportUser, adminUser);
+        context.UserSettings.Add(supportSettings);
+        context.Roles.Add(adminRole);
+        context.UserRoles.Add(userRole);
+        context.Projects.Add(project);
+        context.ProjectAssignments.Add(projectAssignment);
+        context.Tickets.Add(ticket);
+        await context.SaveChangesAsync();
+
+        var handler = new SendEmailTicketCreatedNotificationHandler(
+            context,
+            _emailSender,
+            _templateRenderer,
+            _emailOptions,
+            _logger);
+
+        var notification = new TicketCreatedNotification(ticket.Id);
+
+        // Act
+        await handler.Handle(notification, CancellationToken.None);
+
+        // Assert - Author ALWAYS received confirmation email (transactional)
+        await _emailSender.Received(1).SendAsync(
+            "author@example.com",
+            Arg.Is<string>(s => s.Contains("Bug nel login")),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
+
+        // Assert - Support did NOT receive email because disabled
+        await _emailSender.DidNotReceive().SendAsync(
+            "support@example.com",
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
+
+        // Assert - Admin received email because enabled by default
+        await _emailSender.Received(1).SendAsync(
+            "admin@example.com",
+            Arg.Is<string>(s => s.Contains("[Amministrazione - Nuovo Ticket")),
+            Arg.Any<string>(),
+            Arg.Any<CancellationToken>());
+    }
 }

@@ -102,6 +102,17 @@ internal sealed class SendEmailTicketMessageAddedNotificationHandler(
             return;
         }
 
+        bool notifyCustomer = await context.UserSettings
+            .AsNoTracking()
+            .Where(s => s.UserId == customer.Id)
+            .Select(s => (bool?)s.NotifyOnTicketReply)
+            .SingleOrDefaultAsync(cancellationToken) ?? true;
+
+        if (!notifyCustomer)
+        {
+            return;
+        }
+
         string recipientName = $"{customer.FirstName} {customer.LastName}".Trim();
         if (string.IsNullOrWhiteSpace(recipientName))
         {
@@ -168,6 +179,12 @@ internal sealed class SendEmailTicketMessageAddedNotificationHandler(
             return;
         }
 
+        var staffUserIds = allStaff.Select(u => u.Id).ToList();
+        Dictionary<Guid, bool> settingsLookup = await context.UserSettings
+            .AsNoTracking()
+            .Where(s => staffUserIds.Contains(s.UserId))
+            .ToDictionaryAsync(s => s.UserId, s => s.NotifyOnTicketReply, cancellationToken);
+
         string authorName = userAuthor is not null
             ? $"{userAuthor.FirstName} {userAuthor.LastName}".Trim()
             : "Utente";
@@ -182,6 +199,11 @@ internal sealed class SendEmailTicketMessageAddedNotificationHandler(
         foreach (User staffMember in allStaff)
         {
             if (string.IsNullOrWhiteSpace(staffMember.Email))
+            {
+                continue;
+            }
+
+            if (settingsLookup.TryGetValue(staffMember.Id, out bool notify) && !notify)
             {
                 continue;
             }

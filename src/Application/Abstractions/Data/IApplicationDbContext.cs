@@ -18,6 +18,7 @@ public interface IApplicationDbContext
     DbSet<TicketAttachment> TicketAttachments { get; }
     DbSet<WikiPage> WikiPages { get; }
     DbSet<User> Users { get; }
+    DbSet<UserSettings> UserSettings { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<Role> Roles { get; }
     DbSet<IdentityUserRole<Guid>> UserRoles { get; }
