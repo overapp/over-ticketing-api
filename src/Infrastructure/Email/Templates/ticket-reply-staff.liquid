@@ -1,0 +1,27 @@
+<h2 style="margin-top: 0; color: #0f172a; font-size: 18px;">Nuova risposta dell'utente al ticket</h2>
+<p>Ciao <strong>{{ RecipientName }}</strong>,</p>
+<p>L'utente ha risposto al ticket <strong>#{{ TicketId }}</strong> nel progetto <strong>{{ ProjectName }}</strong>.</p>
+
+<table class="info-table">
+  <tr>
+    <td class="label">Titolo ticket:</td>
+    <td class="value"><strong>{{ Title }}</strong></td>
+  </tr>
+  <tr>
+    <td class="label">Risposta da:</td>
+    <td class="value">{{ AuthorName }} ({{ AuthorEmail }})</td>
+  </tr>
+  <tr>
+    <td class="label">Data risposta:</td>
+    <td class="value">{{ RepliedAt }}</td>
+  </tr>
+</table>
+
+<div style="margin-top: 20px; padding: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+  <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600; color: #475569;">Messaggio dell'utente:</p>
+  <div style="font-size: 14px; color: #334155; white-space: pre-wrap;">{{ MessageContent }}</div>
+</div>
+
+<div style="text-align: center; margin-top: 24px;">
+  <a href="{{ TicketUrl }}" class="button" target="_blank">Prendi in Carico / Rispondi</a>
+</div>

@@ -1,11 +1,19 @@
 ﻿using System.Security.Cryptography;
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
+using Application.Abstractions.Emails;
+using Application.Abstractions.Notifications;
+using Application.Abstractions.Storage;
 using Domain.Users;
 using Infrastructure.Authentication;
 using Infrastructure.Authorization;
 using Infrastructure.Database;
 using Infrastructure.DomainEvents;
+using Infrastructure.Email;
+using Infrastructure.Notifications;
+using Infrastructure.Outbox;
+using Infrastructure.Queues;
+using Infrastructure.Storage;
 using Infrastructure.Time;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -25,22 +33,38 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration) =>
         services
-            .AddServices(configuration)
+            .AddServices()
             .AddDatabase(configuration)
+            .AddStorage(configuration)
+            .AddQueues(configuration)
+            .AddEmail(configuration)
             .AddHealthChecks(configuration)
             .AddIdentityInternal()
             .AddAuthenticationInternal(configuration)
             .AddAuthorizationInternal();
 
-    private static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-
         services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
+        services.AddTransient<INotificationPublisher, NotificationPublisher>();
+        services.AddTransient<IDomainEventToNotificationMapper, TicketCreatedNotificationMapper>();
+        services.AddTransient<IDomainEventToNotificationMapper, TicketReplyNotificationMapper>();
+        services.AddTransient<IDomainEventToNotificationMapper, UserCreatedNotificationMapper>();
+        services.AddTransient<IDomainEventToNotificationMapper, ProjectAssignmentNotificationMapper>();
 
-        services.Configure<Storage.AzureBlobStorageOptions>(options =>
+#pragma warning disable EXTEXP0018 // HybridCache is released; the API is stable in .NET 10.
+        services.AddHybridCache();
+#pragma warning restore EXTEXP0018
+
+        return services;
+    }
+
+    private static IServiceCollection AddStorage(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<AzureBlobStorageOptions>(options =>
         {
-            configuration.GetSection(Storage.AzureBlobStorageOptions.SectionName).Bind(options);
+            configuration.GetSection(AzureBlobStorageOptions.SectionName).Bind(options);
 
             string? connectionString =
                 configuration.GetConnectionString("blobs") ??
@@ -53,11 +77,50 @@ public static class DependencyInjection
             }
         });
 
-        services.AddTransient<Application.Abstractions.Storage.IFileStorageService, Storage.AzureBlobStorageService>();
+        services.AddTransient<IFileStorageService, AzureBlobStorageService>();
 
-#pragma warning disable EXTEXP0018 // HybridCache is released; the API is stable in .NET 10.
-        services.AddHybridCache();
-#pragma warning restore EXTEXP0018
+        return services;
+    }
+
+    private static IServiceCollection AddQueues(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<AzureQueueStorageOptions>(options =>
+        {
+            configuration.GetSection(AzureQueueStorageOptions.SectionName).Bind(options);
+
+            string? connectionString =
+                configuration.GetConnectionString("queues") ??
+                configuration.GetConnectionString("storage") ??
+                configuration.GetConnectionString("QueueStorage");
+
+            if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                options.ConnectionString = connectionString;
+            }
+        });
+
+        services.AddHostedService<OutboxPublisherBackgroundService>();
+        services.AddHostedService<AzureQueueConsumerBackgroundService>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddEmail(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.Configure<EmailNotificationOptions>(configuration.GetSection(EmailNotificationOptions.SectionName));
+
+        services.AddTransient<IEmailTemplateRenderer, FluidEmailTemplateRenderer>();
+
+        string emailProvider = configuration.GetValue<string>("Email:Provider") ?? "Smtp";
+        if (string.Equals(emailProvider, "AzureCommunicationServices", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddTransient<IEmailSender, AzureCommunicationServicesEmailSender>();
+        }
+        else
+        {
+            services.AddTransient<IEmailSender, SmtpEmailSender>();
+        }
 
         return services;
     }
