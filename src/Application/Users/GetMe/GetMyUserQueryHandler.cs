@@ -24,7 +24,8 @@ internal sealed class GetMyUserQueryHandler(IApplicationDbContext context, IUser
                 u.FirstName,
                 u.LastName,
                 Email = u.Email ?? string.Empty,
-                u.EmailConfirmed
+                u.EmailConfirmed,
+                u.MustChangePassword
             })
             .SingleOrDefaultAsync(cancellationToken);
 
@@ -46,6 +47,7 @@ internal sealed class GetMyUserQueryHandler(IApplicationDbContext context, IUser
             LastName = user.LastName,
             Email = user.Email,
             EmailConfirmed = user.EmailConfirmed,
+            MustChangePassword = user.MustChangePassword,
             Roles = roles
         };
     }

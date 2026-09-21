@@ -15,23 +15,15 @@ public sealed class UserValidatorsTests
     [Fact]
     public void CreateValidator_Should_HaveError_WhenEmailIsInvalid()
     {
-        var command = new CreateUserCommand("not-an-email", "Mario", "Rossi", "Password123!");
+        var command = new CreateUserCommand("not-an-email", "Mario", "Rossi");
         TestValidationResult<CreateUserCommand> result = _createValidator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(c => c.Email);
     }
 
     [Fact]
-    public void CreateValidator_Should_HaveError_WhenPasswordIsTooWeak()
-    {
-        var command = new CreateUserCommand("test@example.com", "Mario", "Rossi", "weak");
-        TestValidationResult<CreateUserCommand> result = _createValidator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.Password);
-    }
-
-    [Fact]
     public void CreateValidator_Should_HaveError_WhenRoleIsInvalid()
     {
-        var command = new CreateUserCommand("test@example.com", "Mario", "Rossi", "Password123!", ["NonExistentRole"]);
+        var command = new CreateUserCommand("test@example.com", "Mario", "Rossi", ["NonExistentRole"]);
         TestValidationResult<CreateUserCommand> result = _createValidator.TestValidate(command);
         result.ShouldHaveValidationErrorFor("Roles[0]");
     }

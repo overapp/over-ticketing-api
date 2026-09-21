@@ -13,4 +13,6 @@ public sealed record UserResponse
     public IReadOnlyCollection<string> Roles { get; init; } = [];
 
     public bool EmailConfirmed { get; init; }
+
+    public bool MustChangePassword { get; init; }
 }

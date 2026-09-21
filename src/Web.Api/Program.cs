@@ -50,6 +50,8 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
+app.UseMustChangePasswordEnforcement();
+
 app.UseRateLimiter();
 
 // REMARK: If you want to use Controllers, you'll need this.

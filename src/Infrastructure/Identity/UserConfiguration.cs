@@ -16,5 +16,9 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.NormalizedEmail).HasDatabaseName("email_index");
 
         builder.HasIndex(u => u.NormalizedUserName).IsUnique().HasDatabaseName("user_name_index");
+
+        builder.Property(u => u.MustChangePassword)
+            .IsRequired()
+            .HasDefaultValue(false);
     }
 }

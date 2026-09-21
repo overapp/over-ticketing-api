@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.UnitTests.Abstractions;
 using Application.Users.Create;
 using Domain.Users;
@@ -10,13 +11,16 @@ namespace Application.UnitTests.Users;
 public sealed class CreateUserCommandHandlerTests : BaseHandlerTest
 {
     private static CreateUserCommand Command =>
-        new("newuser@example.com", "Mario", "Rossi", "Password123!", [RoleNames.Support]);
+        new("newuser@example.com", "Mario", "Rossi", [RoleNames.Support]);
 
     [Fact]
     public async Task Handle_Should_ReturnFailure_WhenEmailIsNotUnique()
     {
         // Arrange
         using UserManager<User> userManager = CreateUserManager();
+        IPasswordGenerator passwordGenerator = Substitute.For<IPasswordGenerator>();
+        passwordGenerator.Generate(Arg.Any<int>()).Returns("TempPassword123!");
+
         userManager.CreateAsync(Arg.Any<User>(), Arg.Any<string>())
             .Returns(IdentityResult.Failed(new IdentityError
             {
@@ -24,7 +28,7 @@ public sealed class CreateUserCommandHandlerTests : BaseHandlerTest
                 Description = "Email already taken."
             }));
 
-        var handler = new CreateUserCommandHandler(userManager);
+        var handler = new CreateUserCommandHandler(userManager, passwordGenerator);
 
         // Act
         Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
@@ -41,6 +45,9 @@ public sealed class CreateUserCommandHandlerTests : BaseHandlerTest
         await using TestDbContext context = CreateDbContext();
 
         using UserManager<User> userManager = CreateUserManager();
+        IPasswordGenerator passwordGenerator = Substitute.For<IPasswordGenerator>();
+        passwordGenerator.Generate(Arg.Any<int>()).Returns("TempPassword123!");
+
         userManager.CreateAsync(Arg.Any<User>(), Arg.Any<string>())
             .Returns(callInfo =>
             {
@@ -54,7 +61,7 @@ public sealed class CreateUserCommandHandlerTests : BaseHandlerTest
         userManager.AddToRolesAsync(Arg.Any<User>(), Arg.Any<IEnumerable<string>>())
             .Returns(IdentityResult.Success);
 
-        var handler = new CreateUserCommandHandler(userManager);
+        var handler = new CreateUserCommandHandler(userManager, passwordGenerator);
 
         // Act
         Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
@@ -66,6 +73,7 @@ public sealed class CreateUserCommandHandlerTests : BaseHandlerTest
         user.Email.ShouldBe(Command.Email);
         user.UserName.ShouldBe(Command.Email);
         user.EmailConfirmed.ShouldBeTrue();
+        user.MustChangePassword.ShouldBeTrue();
         user.DomainEvents.ShouldContain(e => e is UserCreatedDomainEvent);
 
         await userManager.Received(1).AddToRolesAsync(

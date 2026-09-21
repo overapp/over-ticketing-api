@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\aspire\AppHost\AppHost.csproj" />
     <ProjectReference Include="..\..\src\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Web.Api\Web.Api.csproj" />
   </ItemGroup>
 
 </Project>

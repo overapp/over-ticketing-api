@@ -7,7 +7,19 @@
     <td class="label">Email di accesso:</td>
     <td class="value"><strong>{{ Email }}</strong></td>
   </tr>
+  {% if TemporaryPassword %}
+  <tr>
+    <td class="label">Password temporanea:</td>
+    <td class="value"><code>{{ TemporaryPassword }}</code></td>
+  </tr>
+  {% endif %}
 </table>
+
+{% if TemporaryPassword %}
+<p style="color: #b45309; background-color: #fef3c7; padding: 12px; border-radius: 6px;">
+  <strong>Attenzione:</strong> Questa è una password temporanea valida per il primo accesso. Al primo login ti verrà richiesto di impostare una nuova password personalizzata.
+</p>
+{% endif %}
 
 <p style="margin-top: 24px;">Per accedere alla piattaforma, clicca sul pulsante sottostante:</p>
 

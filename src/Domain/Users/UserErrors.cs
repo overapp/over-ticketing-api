@@ -84,6 +84,22 @@ public static class UserErrors
         "Users.CannotDemoteLastAdmin",
         "The last administrator account cannot be demoted");
 
+    public static readonly Error InvalidCurrentPassword = Error.Validation(
+        "Users.InvalidCurrentPassword",
+        "The current password provided is incorrect");
+
+    public static readonly Error NewPasswordSameAsCurrent = Error.Validation(
+        "Users.NewPasswordSameAsCurrent",
+        "The new password cannot be the same as the current password");
+
+    public static readonly Error MustChangePasswordRequired = Error.Problem(
+        "Users.MustChangePasswordRequired",
+        "You must change your temporary password before accessing this resource");
+
+    public static readonly Error UserLockedOut = Error.Problem(
+        "Users.UserLockedOut",
+        "The user account is locked out due to too many failed attempts");
+
     public static Error InvalidRole(string role) => Error.Validation(
         "Users.InvalidRole",
         $"The role '{role}' is invalid");

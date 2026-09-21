@@ -39,7 +39,8 @@ internal sealed class SendWelcomeEmailUserCreatedNotificationHandler(
         var model = new UserWelcomeEmailModel(
             RecipientName: recipientName,
             Email: user.Email,
-            LoginUrl: new Uri(loginUrl));
+            LoginUrl: new Uri(loginUrl),
+            TemporaryPassword: notification.TemporaryPassword);
 
         string htmlBody = await templateRenderer.RenderAsync("user-welcome", model, cancellationToken);
 

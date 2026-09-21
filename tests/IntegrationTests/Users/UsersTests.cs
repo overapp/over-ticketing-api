@@ -11,7 +11,7 @@ public sealed class UsersTests(IntegrationTestAppHost appHost) : BaseIntegration
         // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
             "users",
-            new { email = UniqueEmail(), firstName = "Mario", lastName = "Rossi", password = "Password123!" });
+            new { email = UniqueEmail(), firstName = "Mario", lastName = "Rossi" });
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -27,7 +27,7 @@ public sealed class UsersTests(IntegrationTestAppHost appHost) : BaseIntegration
         // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
             "users",
-            new { email = UniqueEmail(), firstName = "Mario", lastName = "Rossi", password = "Password123!" });
+            new { email = UniqueEmail(), firstName = "Mario", lastName = "Rossi" });
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);

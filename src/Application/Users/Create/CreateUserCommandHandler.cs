@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.Abstractions.Messaging;
 using Domain.Users;
 using Microsoft.AspNetCore.Identity;
@@ -5,11 +6,15 @@ using SharedKernel;
 
 namespace Application.Users.Create;
 
-internal sealed class CreateUserCommandHandler(UserManager<User> userManager)
+internal sealed class CreateUserCommandHandler(
+    UserManager<User> userManager,
+    IPasswordGenerator passwordGenerator)
     : ICommandHandler<CreateUserCommand, Guid>
 {
     public async Task<Result<Guid>> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
+        string temporaryPassword = passwordGenerator.Generate();
+
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -17,12 +22,13 @@ internal sealed class CreateUserCommandHandler(UserManager<User> userManager)
             Email = command.Email,
             FirstName = command.FirstName,
             LastName = command.LastName,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            MustChangePassword = true
         };
 
-        user.Raise(new UserCreatedDomainEvent(user.Id));
+        user.Raise(new UserCreatedDomainEvent(user.Id, temporaryPassword));
 
-        IdentityResult createResult = await userManager.CreateAsync(user, command.Password);
+        IdentityResult createResult = await userManager.CreateAsync(user, temporaryPassword);
 
         if (!createResult.Succeeded)
         {

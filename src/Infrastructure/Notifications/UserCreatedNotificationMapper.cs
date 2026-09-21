@@ -9,7 +9,7 @@ internal sealed class UserCreatedNotificationMapper : IDomainEventToNotification
 {
     public INotification? Map(IDomainEvent domainEvent) => domainEvent switch
     {
-        UserCreatedDomainEvent e => new UserCreatedNotification(e.UserId),
+        UserCreatedDomainEvent e => new UserCreatedNotification(e.UserId, e.TemporaryPassword),
         UserRegisteredDomainEvent e => new UserCreatedNotification(e.UserId),
         _ => null
     };
