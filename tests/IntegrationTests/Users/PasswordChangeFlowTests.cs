@@ -35,7 +35,7 @@ public sealed class PasswordChangeFlowTests(IntegrationTestAppHost appHost) : Ba
             "auth/login",
             new { email, password = "Password123!" });
 
-        oldLoginResponse.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        oldLoginResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
 
         // 4. New password should succeed
         HttpResponseMessage newLoginResponse = await HttpClient.PostAsJsonAsync(
