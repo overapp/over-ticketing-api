@@ -17,7 +17,8 @@ internal sealed class TokenProvider(IConfiguration configuration) : ITokenProvid
         List<Claim> claims =
         [
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email!)
+            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+            new Claim(CustomClaims.MustChangePassword, user.MustChangePassword ? "true" : "false")
         ];
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));

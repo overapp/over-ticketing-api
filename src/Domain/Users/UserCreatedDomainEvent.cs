@@ -2,4 +2,4 @@ using SharedKernel;
 
 namespace Domain.Users;
 
-public sealed record UserCreatedDomainEvent(Guid UserId) : IDomainEvent;
+public sealed record UserCreatedDomainEvent(Guid UserId, string? TemporaryPassword = null) : IDomainEvent;

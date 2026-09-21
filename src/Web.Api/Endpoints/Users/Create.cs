@@ -13,7 +13,6 @@ internal sealed class Create : IEndpoint
         string Email,
         string FirstName,
         string LastName,
-        string Password,
         IReadOnlyCollection<string>? Roles = null);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -27,7 +26,6 @@ internal sealed class Create : IEndpoint
                 request.Email,
                 request.FirstName,
                 request.LastName,
-                request.Password,
                 request.Roles);
 
             Result<Guid> result = await handler.Handle(command, cancellationToken);

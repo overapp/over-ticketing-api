@@ -53,6 +53,8 @@ public static class DependencyInjection
         services.AddTransient<IDomainEventToNotificationMapper, UserCreatedNotificationMapper>();
         services.AddTransient<IDomainEventToNotificationMapper, ProjectAssignmentNotificationMapper>();
         services.AddTransient<IDomainEventToNotificationMapper, UserPasswordResetRequestedNotificationMapper>();
+        services.AddTransient<IDomainEventToNotificationMapper, UserTemporaryPasswordAssignedNotificationMapper>();
+        services.AddTransient<IDomainEventToNotificationMapper, UserPasswordChangedNotificationMapper>();
 
 #pragma warning disable EXTEXP0018 // HybridCache is released; the API is stable in .NET 10.
         services.AddHybridCache();
@@ -191,6 +193,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<IUserContext, UserContext>();
         services.AddSingleton<ITokenProvider, TokenProvider>();
+        services.AddSingleton<IPasswordGenerator, CryptographicPasswordGenerator>();
 
         return services;
     }

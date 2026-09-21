@@ -10,4 +10,11 @@ public static class MiddlewareExtensions
 
         return app;
     }
+
+    public static IApplicationBuilder UseMustChangePasswordEnforcement(this IApplicationBuilder app)
+    {
+        app.UseMiddleware<MustChangePasswordMiddleware>();
+
+        return app;
+    }
 }

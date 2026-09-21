@@ -68,7 +68,8 @@ internal sealed class GetUsersQueryHandler(IApplicationDbContext context)
                 u.FirstName,
                 u.LastName,
                 Email = u.Email ?? string.Empty,
-                u.EmailConfirmed
+                u.EmailConfirmed,
+                u.MustChangePassword
             })
             .ToListAsync(cancellationToken);
 
@@ -93,6 +94,7 @@ internal sealed class GetUsersQueryHandler(IApplicationDbContext context)
             LastName = u.LastName,
             Email = u.Email,
             EmailConfirmed = u.EmailConfirmed,
+            MustChangePassword = u.MustChangePassword,
             Roles = lookup.GetValueOrDefault(u.Id, [])
         }).ToList();
 

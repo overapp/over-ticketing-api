@@ -13,7 +13,7 @@ public abstract class BaseIntegrationTest : IDisposable
 
     protected HttpClient HttpClient { get; }
 
-    protected sealed record AccessTokens(string AccessToken, string RefreshToken);
+    protected sealed record AccessTokens(string AccessToken, string RefreshToken, bool MustChangePassword = false);
 
     protected static string UniqueEmail() => $"test-{Guid.NewGuid():N}@example.com";
 
