@@ -1,0 +1,20 @@
+<h2 style="margin-top: 0; color: #0f172a; font-size: 18px;">Assegnazione al progetto</h2>
+<p>Ciao <strong>{{ RecipientName }}</strong>,</p>
+<p>Sei stato assegnato al progetto <strong>{{ ProjectName }}</strong> con il ruolo di <strong>{{ Role }}</strong>.</p>
+
+<table class="info-table">
+  <tr>
+    <td class="label">Progetto:</td>
+    <td class="value"><strong>{{ ProjectName }}</strong></td>
+  </tr>
+  <tr>
+    <td class="label">Ruolo assegnato:</td>
+    <td class="value"><span class="badge badge-medium">{{ Role }}</span></td>
+  </tr>
+</table>
+
+<p style="margin-top: 24px;">Puoi accedere direttamente alla dashboard del progetto tramite il seguente link:</p>
+
+<div style="text-align: center; margin-top: 24px;">
+  <a href="{{ ProjectUrl }}" class="button" target="_blank">Apri Progetto</a>
+</div>

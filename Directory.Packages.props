@@ -5,6 +5,10 @@
   <!--.NET 10 packages. Most of them will work on .NET 8/9. If you need to, make the updates here individually.-->
   <ItemGroup>
     <!-- Static code analysis -->
+    <PackageVersion Include="Azure.Communication.Email" Version="1.1.0" />
+    <PackageVersion Include="Azure.Storage.Queues" Version="12.27.1" />
+    <PackageVersion Include="Fluid.Core" Version="2.40.0" />
+    <PackageVersion Include="MailKit" Version="4.18.0" />
     <PackageVersion Include="Markdig" Version="1.4.0" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.17.4" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.27.0.140913" />

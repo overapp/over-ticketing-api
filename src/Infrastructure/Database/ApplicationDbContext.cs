@@ -1,10 +1,12 @@
-﻿using Application.Abstractions.Data;
+using System.Text.Json;
+using Application.Abstractions.Data;
 using Domain.Organizations;
 using Domain.Projects;
 using Domain.Tickets;
 using Domain.Users;
 using Domain.Wiki;
 using Infrastructure.DomainEvents;
+using Infrastructure.Outbox;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +43,8 @@ public sealed class ApplicationDbContext(
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public DbSet<OutboxMessage> OutboxMessages { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -63,11 +67,36 @@ public sealed class ApplicationDbContext(
         //     - handlers can fail
 
         List<IDomainEvent> domainEvents = ExtractDomainEvents();
+
+        InsertOutboxMessages(domainEvents);
+
         int result = await base.SaveChangesAsync(cancellationToken);
 
         await PublishDomainEventsAsync(domainEvents);
 
         return result;
+    }
+
+    private void InsertOutboxMessages(List<IDomainEvent> domainEvents)
+    {
+        if (domainEvents.Count == 0)
+        {
+            return;
+        }
+
+        DateTime utcNow = DateTime.UtcNow;
+
+        foreach (IDomainEvent domainEvent in domainEvents)
+        {
+            Type eventType = domainEvent.GetType();
+            OutboxMessages.Add(new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                Type = eventType.AssemblyQualifiedName ?? eventType.FullName ?? eventType.Name,
+                Content = JsonSerializer.Serialize(domainEvent, eventType),
+                OccurredOnUtc = utcNow
+            });
+        }
     }
 
     private async Task PublishDomainEventsAsync(IEnumerable<IDomainEvent> domainEvents)

@@ -1,0 +1,62 @@
+<h2 style="margin-top: 0; color: #0f172a; font-size: 18px;">Nuovo ticket da assegnare o gestire</h2>
+<p>Ciao <strong>{{ RecipientName }}</strong>,</p>
+
+{% if IsAdminFallback %}
+<div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #991b1b; border-radius: 4px;">
+  <strong>Attenzione:</strong> Questo messaggio ti è stato inoltrato come Amministratore in quanto non risultano operatori di Supporto assegnati a questo progetto.
+</div>
+{% else %}
+<p>È stato aperto un nuovo ticket di supporto nel progetto <strong>{{ ProjectName }}</strong>.</p>
+{% endif %}
+
+<table class="info-table">
+  <tr>
+    <td class="label">Identificativo:</td>
+    <td class="value"><code>{{ TicketId }}</code></td>
+  </tr>
+  <tr>
+    <td class="label">Titolo:</td>
+    <td class="value"><strong>{{ Title }}</strong></td>
+  </tr>
+  <tr>
+    <td class="label">Progetto:</td>
+    <td class="value">{{ ProjectName }}</td>
+  </tr>
+  <tr>
+    <td class="label">Aperto da:</td>
+    <td class="value">{{ AuthorName }} ({{ AuthorEmail }})</td>
+  </tr>
+  <tr>
+    <td class="label">Priorità:</td>
+    <td class="value">
+      {% if Priority == "High" or Priority == "Critical" or Priority == "Urgent" %}
+        <span class="badge badge-high">{{ Priority }}</span>
+      {% elsif Priority == "Medium" %}
+        <span class="badge badge-medium">{{ Priority }}</span>
+      {% else %}
+        <span class="badge badge-low">{{ Priority }}</span>
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <td class="label">Data di creazione:</td>
+    <td class="value">{{ CreatedAt }}</td>
+  </tr>
+  {% if FirstResponseDueAt %}
+  <tr>
+    <td class="label">Scadenza prima risposta:</td>
+    <td class="value">{{ FirstResponseDueAt }}</td>
+  </tr>
+  {% endif %}
+</table>
+
+{% if InitialMessage %}
+<div style="margin-top: 20px; padding: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+  <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: 600; color: #475569;">Messaggio iniziale:</p>
+  <div style="font-size: 14px; color: #334155; white-space: pre-wrap;">{{ InitialMessage }}</div>
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 24px;">
+  <a href="{{ TicketUrl }}" class="button" target="_blank">Prendi in Carico / Rispondi</a>
+</div>

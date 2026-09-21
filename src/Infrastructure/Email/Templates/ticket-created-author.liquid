@@ -1,0 +1,42 @@
+<h2 style="margin-top: 0; color: #0f172a; font-size: 18px;">Conferma apertura ticket</h2>
+<p>Ciao <strong>{{ RecipientName }}</strong>,</p>
+<p>Il tuo ticket di supporto è stato aperto con successo ed è stato preso in carico dal nostro team.</p>
+
+<table class="info-table">
+  <tr>
+    <td class="label">Identificativo:</td>
+    <td class="value"><code>{{ TicketId }}</code></td>
+  </tr>
+  <tr>
+    <td class="label">Titolo:</td>
+    <td class="value"><strong>{{ Title }}</strong></td>
+  </tr>
+  <tr>
+    <td class="label">Progetto:</td>
+    <td class="value">{{ ProjectName }}</td>
+  </tr>
+  <tr>
+    <td class="label">Priorità:</td>
+    <td class="value">{{ Priority }}</td>
+  </tr>
+  <tr>
+    <td class="label">Stato:</td>
+    <td class="value">{{ Status }}</td>
+  </tr>
+  <tr>
+    <td class="label">Data di creazione:</td>
+    <td class="value">{{ CreatedAt }}</td>
+  </tr>
+  {% if FirstResponseDueAt %}
+  <tr>
+    <td class="label">Prima risposta stimata:</td>
+    <td class="value">{{ FirstResponseDueAt }}</td>
+  </tr>
+  {% endif %}
+</table>
+
+<p>Puoi monitorare lo stato di avanzamento o aggiungere messaggi e allegati cliccando sul pulsante sottostante:</p>
+
+<div style="text-align: center;">
+  <a href="{{ TicketUrl }}" class="button" target="_blank">Visualizza Ticket</a>
+</div>
