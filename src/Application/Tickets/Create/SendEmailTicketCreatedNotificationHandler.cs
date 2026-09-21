@@ -118,6 +118,12 @@ internal sealed class SendEmailTicketCreatedNotificationHandler(
             return;
         }
 
+        var staffUserIds = allStaff.Select(u => u.Id).ToList();
+        Dictionary<Guid, bool> settingsLookup = await context.UserSettings
+            .AsNoTracking()
+            .Where(s => staffUserIds.Contains(s.UserId))
+            .ToDictionaryAsync(s => s.UserId, s => s.NotifyOnTicketCreated, cancellationToken);
+
         string authorName = author is not null ? $"{author.FirstName} {author.LastName}".Trim() : "Utente";
         if (string.IsNullOrWhiteSpace(authorName) && author is not null)
         {
@@ -130,6 +136,11 @@ internal sealed class SendEmailTicketCreatedNotificationHandler(
         foreach (User user in allStaff)
         {
             if (string.IsNullOrWhiteSpace(user.Email))
+            {
+                continue;
+            }
+
+            if (settingsLookup.TryGetValue(user.Id, out bool notify) && !notify)
             {
                 continue;
             }

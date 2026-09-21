@@ -17,6 +17,8 @@ public sealed class User : IdentityUser<Guid>, IHasDomainEvents
 
     public string LastName { get; set; }
 
+    public UserSettings? Settings { get; set; }
+
     public ICollection<ProjectAssignment> ProjectAssignments { get; set; } = [];
 
     public List<IDomainEvent> DomainEvents => [.. _domainEvents];
