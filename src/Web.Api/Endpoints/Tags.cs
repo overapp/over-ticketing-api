@@ -7,4 +7,6 @@ public static class Tags
     public const string Projects = "Projects";
 
     public const string Users = "Users";
+
+    public const string Auth = "Auth";
 }

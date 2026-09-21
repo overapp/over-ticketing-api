@@ -5,13 +5,13 @@ using SharedKernel;
 using Web.Api.Extensions;
 using Web.Api.Infrastructure;
 
-namespace Web.Api.Endpoints.Users;
+namespace Web.Api.Endpoints.Auth;
 
 internal sealed class GetMe : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("users/me", async (
+        app.MapGet("auth/me", async (
             IQueryHandler<GetMyUserQuery, UserResponse> handler,
             CancellationToken cancellationToken) =>
         {
@@ -22,6 +22,6 @@ internal sealed class GetMe : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .RequireAuthorization()
-        .WithTags(Tags.Users);
+        .WithTags(Tags.Auth);
     }
 }
