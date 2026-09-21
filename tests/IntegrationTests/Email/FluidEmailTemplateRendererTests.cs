@@ -162,6 +162,26 @@ public sealed class FluidEmailTemplateRendererTests
     }
 
     [Fact]
+    public async Task RenderAsync_Should_RenderPasswordResetEmailWithLayout_WhenValidModelProvided()
+    {
+        // Arrange
+        var model = new Application.Users.ForgotPassword.UserPasswordResetEmailModel(
+            RecipientName: "Paolo Rossi",
+            Email: "paolo@example.com",
+            ResetUrl: new Uri("https://ticketing.overapp.com/reset-password?email=paolo%40example.com&token=sample-token"));
+
+        // Act
+        string html = await _renderer.RenderAsync("user-password-reset", model);
+
+        // Assert
+        html.ShouldNotBeNullOrWhiteSpace();
+        html.ShouldContain("OverTicketing");
+        html.ShouldContain("Paolo Rossi");
+        html.ShouldContain("paolo@example.com");
+        html.ShouldContain("https://ticketing.overapp.com/reset-password?email=paolo%40example.com&token=sample-token");
+    }
+
+    [Fact]
     public async Task RenderAsync_Should_ThrowFileNotFoundException_WhenTemplateDoesNotExist()
     {
         // Arrange

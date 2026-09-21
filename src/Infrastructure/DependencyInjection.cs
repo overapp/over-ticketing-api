@@ -52,6 +52,7 @@ public static class DependencyInjection
         services.AddTransient<IDomainEventToNotificationMapper, TicketReplyNotificationMapper>();
         services.AddTransient<IDomainEventToNotificationMapper, UserCreatedNotificationMapper>();
         services.AddTransient<IDomainEventToNotificationMapper, ProjectAssignmentNotificationMapper>();
+        services.AddTransient<IDomainEventToNotificationMapper, UserPasswordResetRequestedNotificationMapper>();
 
 #pragma warning disable EXTEXP0018 // HybridCache is released; the API is stable in .NET 10.
         services.AddHybridCache();
@@ -159,9 +160,13 @@ public static class DependencyInjection
             })
             .AddRoles<Role>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddSignInManager();
+            .AddSignInManager()
+            .AddDefaultTokenProviders();
 
-        services.AddSingleton<IPasswordHasher<User>, PasswordHasher>();
+        services.Configure<DataProtectionTokenProviderOptions>(options =>
+        {
+            options.TokenLifespan = TimeSpan.FromHours(1);
+        });
 
         return services;
     }

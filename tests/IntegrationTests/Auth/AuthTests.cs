@@ -101,4 +101,76 @@ public sealed class AuthTests(IntegrationTestAppHost appHost) : BaseIntegrationT
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task ForgotPassword_Should_ReturnNoContent_EvenWhenEmailDoesNotExist()
+    {
+        // Act
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "auth/forgot-password",
+            new { email = "nonexistent@example.com" });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task ForgotPassword_Should_ReturnNoContent_WhenEmailExists()
+    {
+        // Arrange
+        string email = UniqueEmail();
+        await RegisterUserAsync(email);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "auth/forgot-password",
+            new { email });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+    }
+
+    [Fact]
+    public async Task ResetPassword_Should_ReturnProblem_WhenTokenIsInvalid()
+    {
+        // Arrange
+        string email = UniqueEmail();
+        await RegisterUserAsync(email);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "auth/reset-password",
+            new
+            {
+                email,
+                token = "invalid-token",
+                newPassword = "NewPassword123!",
+                confirmPassword = "NewPassword123!"
+            });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ResetPassword_Should_ReturnValidationProblem_WhenPasswordsDoNotMatch()
+    {
+        // Arrange
+        string email = UniqueEmail();
+        await RegisterUserAsync(email);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
+            "auth/reset-password",
+            new
+            {
+                email,
+                token = "any-token",
+                newPassword = "NewPassword123!",
+                confirmPassword = "MismatchPassword123!"
+            });
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
 }
