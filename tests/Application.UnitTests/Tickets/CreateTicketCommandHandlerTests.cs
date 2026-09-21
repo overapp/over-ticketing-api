@@ -1,5 +1,6 @@
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Storage;
+using Application.Tickets;
 using Application.Tickets.Create;
 using Application.UnitTests.Abstractions;
 using Domain.Projects;
@@ -272,5 +273,53 @@ public sealed class CreateTicketCommandHandlerTests : BaseHandlerTest
 
         Ticket ticket = await context.Tickets.SingleAsync(t => t.Id == result.Value);
         ticket.CategoryId.ShouldBe(globalCategory.Id);
+    }
+
+    [Fact]
+    public async Task Handle_Should_UploadAttachments_WhenAttachmentsProvided()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        var userId = Guid.NewGuid();
+        _userContext.UserId.Returns(userId);
+
+        var project = new Project { Id = Guid.NewGuid(), Name = "Project", Status = ProjectStatus.Active };
+        context.Projects.Add(project);
+        context.ProjectAssignments.Add(new ProjectAssignment
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            UserId = userId,
+            Role = RoleNames.User
+        });
+        await context.SaveChangesAsync();
+
+        _fileStorageService.UploadAsync(Arg.Any<Stream>(), "screenshot.png", "image/png", Arg.Any<CancellationToken>())
+            .Returns("storage/screenshot.png");
+
+        using var memoryStream = new MemoryStream([10, 20]);
+        var attachments = new List<FileUploadModel>
+        {
+            new("screenshot.png", "image/png", 2, memoryStream)
+        };
+
+        var handler = new CreateTicketCommandHandler(context, _userContext, _fileStorageService, _dateTimeProvider);
+        var command = new CreateTicketCommand(
+            project.Id,
+            "Ticket with attachment",
+            "Message",
+            TicketPriority.High,
+            null,
+            attachments);
+
+        // Act
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        Ticket ticket = await context.Tickets.Include(t => t.Messages).ThenInclude(m => m.Attachments).SingleAsync(t => t.Id == result.Value);
+        ticket.Messages.Count.ShouldBe(1);
+        ticket.Messages.First().Attachments.Count.ShouldBe(1);
+        ticket.Messages.First().Attachments.First().FileName.ShouldBe("screenshot.png");
     }
 }

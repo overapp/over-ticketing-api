@@ -163,4 +163,86 @@ public sealed class UpdateUserCommandHandlerTests : BaseHandlerTest
             targetUser,
             Arg.Is<IEnumerable<string>>(roles => roles.Contains(RoleNames.Support)));
     }
+
+    [Fact]
+    public async Task Handle_Should_ReturnFailure_WhenUpdateAsyncFails()
+    {
+        // Arrange
+        var targetUserId = Guid.NewGuid();
+        using UserManager<User> userManager = CreateUserManager();
+        IUserContext userContext = Substitute.For<IUserContext>();
+        userContext.UserId.Returns(Guid.NewGuid());
+        HybridCache cache = CreateCache();
+
+        var targetUser = new User { Id = targetUserId, Email = "user@example.com" };
+        userManager.FindByIdAsync(targetUserId.ToString()).Returns(targetUser);
+        userManager.GetRolesAsync(targetUser).Returns([RoleNames.User]);
+        userManager.UpdateAsync(targetUser).Returns(IdentityResult.Failed(new IdentityError { Code = "ConcurrencyFailure", Description = "Concurrency error" }));
+
+        var handler = new UpdateUserCommandHandler(userManager, userContext, cache);
+        var command = new UpdateUserCommand(targetUserId, "user@example.com", "First", "Last");
+
+        // Act
+        Result result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.Code.ShouldBe("Users.ConcurrencyFailure");
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnFailure_WhenRemoveFromRolesFails()
+    {
+        // Arrange
+        var targetUserId = Guid.NewGuid();
+        using UserManager<User> userManager = CreateUserManager();
+        IUserContext userContext = Substitute.For<IUserContext>();
+        userContext.UserId.Returns(Guid.NewGuid());
+        HybridCache cache = CreateCache();
+
+        var targetUser = new User { Id = targetUserId, Email = "user@example.com" };
+        userManager.FindByIdAsync(targetUserId.ToString()).Returns(targetUser);
+        userManager.GetRolesAsync(targetUser).Returns([RoleNames.User, RoleNames.Support]);
+        userManager.UpdateAsync(targetUser).Returns(IdentityResult.Success);
+        userManager.RemoveFromRolesAsync(targetUser, Arg.Any<IEnumerable<string>>())
+            .Returns(IdentityResult.Failed(new IdentityError { Code = "RemoveRoleFailed", Description = "Cannot remove" }));
+
+        var handler = new UpdateUserCommandHandler(userManager, userContext, cache);
+        var command = new UpdateUserCommand(targetUserId, "user@example.com", "First", "Last", [RoleNames.User]); // Removes Support
+
+        // Act
+        Result result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.Code.ShouldBe("Users.RemoveRoleFailed");
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnFailure_WhenAddToRolesFails()
+    {
+        // Arrange
+        var targetUserId = Guid.NewGuid();
+        using UserManager<User> userManager = CreateUserManager();
+        IUserContext userContext = Substitute.For<IUserContext>();
+        userContext.UserId.Returns(Guid.NewGuid());
+        HybridCache cache = CreateCache();
+
+        var targetUser = new User { Id = targetUserId, Email = "user@example.com" };
+        userManager.FindByIdAsync(targetUserId.ToString()).Returns(targetUser);
+        userManager.GetRolesAsync(targetUser).Returns([RoleNames.User]);
+        userManager.UpdateAsync(targetUser).Returns(IdentityResult.Success);
+        userManager.AddToRolesAsync(targetUser, Arg.Any<IEnumerable<string>>())
+            .Returns(IdentityResult.Failed(new IdentityError { Code = "AddRoleFailed", Description = "Cannot add" }));
+
+        var handler = new UpdateUserCommandHandler(userManager, userContext, cache);
+        var command = new UpdateUserCommand(targetUserId, "user@example.com", "First", "Last", [RoleNames.User, RoleNames.Support]);
+
+        // Act
+        Result result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.Code.ShouldBe("Users.AddRoleFailed");
+    }
 }

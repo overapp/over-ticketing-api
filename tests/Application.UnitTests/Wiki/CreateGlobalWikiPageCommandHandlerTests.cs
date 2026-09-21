@@ -79,4 +79,110 @@ public sealed class CreateGlobalWikiPageCommandHandlerTests : BaseHandlerTest
         page.CreatedAt.ShouldBe(_utcNow);
         page.DomainEvents.ShouldContain(e => e is WikiPageCreatedDomainEvent);
     }
+
+    [Fact]
+    public async Task Handle_Should_ReturnParentNotFound_WhenParentDoesNotExist()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        var adminRole = new Role(RoleNames.Admin) { Id = Guid.NewGuid() };
+        context.Roles.Add(adminRole);
+        context.UserRoles.Add(new IdentityUserRole<Guid> { UserId = _userId, RoleId = adminRole.Id });
+        await context.SaveChangesAsync();
+
+        var parentId = Guid.NewGuid();
+        var command = new CreateGlobalWikiPageCommand("Child Page", "child", "Content", parentId, false);
+        var handler = new CreateGlobalWikiPageCommandHandler(context, _userContext, _dateTimeProvider);
+
+        // Act
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(WikiPageErrors.ParentNotFound(parentId));
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnParentScopeMismatch_WhenParentIsProjectPage()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        var adminRole = new Role(RoleNames.Admin) { Id = Guid.NewGuid() };
+        context.Roles.Add(adminRole);
+        context.UserRoles.Add(new IdentityUserRole<Guid> { UserId = _userId, RoleId = adminRole.Id });
+
+        var projectPage = new WikiPage
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = Guid.NewGuid(), // project scope!
+            Title = "Parent Project Page",
+            Slug = "parent-page",
+            Content = "Content"
+        };
+        context.WikiPages.Add(projectPage);
+        await context.SaveChangesAsync();
+
+        var command = new CreateGlobalWikiPageCommand("Child Page", "child", "Content", projectPage.Id, false);
+        var handler = new CreateGlobalWikiPageCommandHandler(context, _userContext, _dateTimeProvider);
+
+        // Act
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(WikiPageErrors.ParentScopeMismatch);
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnSlugAlreadyExists_WhenSlugAlreadyExists()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        var adminRole = new Role(RoleNames.Admin) { Id = Guid.NewGuid() };
+        context.Roles.Add(adminRole);
+        context.UserRoles.Add(new IdentityUserRole<Guid> { UserId = _userId, RoleId = adminRole.Id });
+
+        var existingPage = new WikiPage
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = null,
+            Title = "Existing Page",
+            Slug = "existing-slug",
+            Content = "Content"
+        };
+        context.WikiPages.Add(existingPage);
+        await context.SaveChangesAsync();
+
+        var command = new CreateGlobalWikiPageCommand("New Page", "existing-slug", "Content", null, false);
+        var handler = new CreateGlobalWikiPageCommandHandler(context, _userContext, _dateTimeProvider);
+
+        // Act
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(WikiPageErrors.SlugAlreadyExists("existing-slug"));
+    }
+
+    [Fact]
+    public async Task Handle_Should_GenerateSlugFromTitle_WhenSlugIsEmpty()
+    {
+        // Arrange
+        await using TestDbContext context = CreateDbContext();
+        var adminRole = new Role(RoleNames.Admin) { Id = Guid.NewGuid() };
+        context.Roles.Add(adminRole);
+        context.UserRoles.Add(new IdentityUserRole<Guid> { UserId = _userId, RoleId = adminRole.Id });
+        await context.SaveChangesAsync();
+
+        var command = new CreateGlobalWikiPageCommand("Generated From Title", "", "Content", null, false);
+        var handler = new CreateGlobalWikiPageCommandHandler(context, _userContext, _dateTimeProvider);
+
+        // Act
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        WikiPage page = await context.WikiPages.SingleAsync(wp => wp.Id == result.Value);
+        page.Slug.ShouldBe("generated-from-title");
+    }
 }
