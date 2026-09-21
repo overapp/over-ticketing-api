@@ -42,9 +42,10 @@ public static class Permissions
         public const string Assign = "tickets:assign";
         public const string StatusUpdate = "tickets:status:update";
         public const string PriorityUpdate = "tickets:priority:update";
+        public const string CategoryUpdate = "tickets:category:update";
 
         public static IReadOnlyCollection<string> All { get; } =
-            [Read, Create, Reply, Assign, StatusUpdate, PriorityUpdate];
+            [Read, Create, Reply, Assign, StatusUpdate, PriorityUpdate, CategoryUpdate];
     }
 
     public static class Wiki
@@ -55,5 +56,12 @@ public static class Permissions
         public const string Delete = "wiki:delete";
 
         public static IReadOnlyCollection<string> All { get; } = [Read, Create, Edit, Delete];
+    }
+
+    public static class Categories
+    {
+        public const string Manage = "categories:manage";
+
+        public static IReadOnlyCollection<string> All { get; } = [Manage];
     }
 }

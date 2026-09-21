@@ -45,6 +45,12 @@ internal sealed class TicketConfiguration : IEntityTypeConfiguration<Ticket>
             .IsRequired(false)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasOne<TicketCategory>()
+            .WithMany()
+            .HasForeignKey(ticket => ticket.CategoryId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasMany(ticket => ticket.Messages)
             .WithOne()
             .HasForeignKey(message => message.TicketId)

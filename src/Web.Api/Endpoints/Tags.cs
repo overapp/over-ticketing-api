@@ -14,5 +14,7 @@ public static class Tags
 
     public const string Wiki = "Wiki";
 
+    public const string Categories = "Categories";
+
     public const string Settings = "Settings";
 }

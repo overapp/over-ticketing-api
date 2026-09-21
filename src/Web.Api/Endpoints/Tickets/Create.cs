@@ -41,6 +41,13 @@ internal sealed class Create : IEndpoint
                 priority = parsedPriority;
             }
 
+            Guid? categoryId = null;
+            if (form.ContainsKey("categoryId") &&
+                Guid.TryParse(form["categoryId"].ToString(), out Guid parsedCategoryId))
+            {
+                categoryId = parsedCategoryId;
+            }
+
             List<FileUploadModel> attachments = [];
             foreach (IFormFile file in form.Files)
             {
@@ -51,7 +58,7 @@ internal sealed class Create : IEndpoint
                     file.OpenReadStream()));
             }
 
-            var command = new CreateTicketCommand(projectId, title, message, priority, attachments);
+            var command = new CreateTicketCommand(projectId, title, message, priority, categoryId, attachments);
 
             Result<Guid> result = await handler.Handle(command, cancellationToken);
 

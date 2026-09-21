@@ -115,4 +115,162 @@ public sealed class CreateTicketCommandHandlerTests : BaseHandlerTest
 
         ticket.DomainEvents.ShouldContain(e => e is TicketCreatedDomainEvent);
     }
+
+    [Fact]
+    public async Task Handle_Should_ReturnNotFound_WhenCategoryDoesNotExist()
+    {
+        await using TestDbContext context = CreateDbContext();
+        var userId = Guid.NewGuid();
+        _userContext.UserId.Returns(userId);
+
+        var project = new Project { Id = Guid.NewGuid(), Name = "Project", Status = ProjectStatus.Active };
+        context.Projects.Add(project);
+        context.ProjectAssignments.Add(new ProjectAssignment
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            UserId = userId,
+            Role = RoleNames.User
+        });
+        await context.SaveChangesAsync();
+
+        var handler = new CreateTicketCommandHandler(context, _userContext, _fileStorageService, _dateTimeProvider);
+        var missingCategoryId = Guid.NewGuid();
+        var command = new CreateTicketCommand(
+            project.Id,
+            "Ticket title",
+            "Ticket message",
+            TicketPriority.Medium,
+            missingCategoryId);
+
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(TicketCategoryErrors.NotFound(missingCategoryId));
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnCategoryArchived_WhenCategoryIsArchived()
+    {
+        await using TestDbContext context = CreateDbContext();
+        var userId = Guid.NewGuid();
+        _userContext.UserId.Returns(userId);
+
+        var project = new Project { Id = Guid.NewGuid(), Name = "Project", Status = ProjectStatus.Active };
+        context.Projects.Add(project);
+        context.ProjectAssignments.Add(new ProjectAssignment
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            UserId = userId,
+            Role = RoleNames.User
+        });
+
+        var archivedCategory = new TicketCategory
+        {
+            Id = Guid.NewGuid(),
+            Name = "Archived Bug",
+            Status = TicketCategoryStatus.Archived
+        };
+        context.TicketCategories.Add(archivedCategory);
+        await context.SaveChangesAsync();
+
+        var handler = new CreateTicketCommandHandler(context, _userContext, _fileStorageService, _dateTimeProvider);
+        var command = new CreateTicketCommand(
+            project.Id,
+            "Ticket title",
+            "Ticket message",
+            TicketPriority.Medium,
+            archivedCategory.Id);
+
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(TicketCategoryErrors.CategoryArchived(archivedCategory.Id));
+    }
+
+    [Fact]
+    public async Task Handle_Should_ReturnInvalidForProject_WhenCategoryBelongsToAnotherProject()
+    {
+        await using TestDbContext context = CreateDbContext();
+        var userId = Guid.NewGuid();
+        _userContext.UserId.Returns(userId);
+
+        var project = new Project { Id = Guid.NewGuid(), Name = "Project", Status = ProjectStatus.Active };
+        var otherProject = new Project { Id = Guid.NewGuid(), Name = "Other Project", Status = ProjectStatus.Active };
+        context.Projects.AddRange(project, otherProject);
+        context.ProjectAssignments.Add(new ProjectAssignment
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            UserId = userId,
+            Role = RoleNames.User
+        });
+
+        var otherProjectCategory = new TicketCategory
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = otherProject.Id,
+            Name = "Other Project Category",
+            Status = TicketCategoryStatus.Active
+        };
+        context.TicketCategories.Add(otherProjectCategory);
+        await context.SaveChangesAsync();
+
+        var handler = new CreateTicketCommandHandler(context, _userContext, _fileStorageService, _dateTimeProvider);
+        var command = new CreateTicketCommand(
+            project.Id,
+            "Ticket title",
+            "Ticket message",
+            TicketPriority.Medium,
+            otherProjectCategory.Id);
+
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(TicketCategoryErrors.InvalidForProject(otherProjectCategory.Id, project.Id));
+    }
+
+    [Fact]
+    public async Task Handle_Should_AssignCategory_WhenValidGlobalOrProjectCategory()
+    {
+        await using TestDbContext context = CreateDbContext();
+        var userId = Guid.NewGuid();
+        _userContext.UserId.Returns(userId);
+
+        var project = new Project { Id = Guid.NewGuid(), Name = "Project", Status = ProjectStatus.Active };
+        context.Projects.Add(project);
+        context.ProjectAssignments.Add(new ProjectAssignment
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            UserId = userId,
+            Role = RoleNames.User
+        });
+
+        var globalCategory = new TicketCategory
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = null,
+            Name = "Global Bug",
+            Status = TicketCategoryStatus.Active
+        };
+        context.TicketCategories.Add(globalCategory);
+        await context.SaveChangesAsync();
+
+        var handler = new CreateTicketCommandHandler(context, _userContext, _fileStorageService, _dateTimeProvider);
+        var command = new CreateTicketCommand(
+            project.Id,
+            "Ticket title",
+            "Ticket message",
+            TicketPriority.Medium,
+            globalCategory.Id);
+
+        Result<Guid> result = await handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+
+        Ticket ticket = await context.Tickets.SingleAsync(t => t.Id == result.Value);
+        ticket.CategoryId.ShouldBe(globalCategory.Id);
+    }
 }

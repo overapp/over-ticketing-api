@@ -14,6 +14,8 @@ public sealed class Ticket : Entity
 
     public Guid? AssignedToUserId { get; set; }
 
+    public Guid? CategoryId { get; set; }
+
     public string Title { get; set; } = string.Empty;
 
     public TicketStatus Status { get; set; } = TicketStatus.New;

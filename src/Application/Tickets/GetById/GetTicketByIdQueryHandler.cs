@@ -1,6 +1,7 @@
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Application.TicketCategories;
 using Domain.Projects;
 using Domain.Tickets;
 using Domain.Users;
@@ -56,12 +57,33 @@ internal sealed class GetTicketByIdQueryHandler(
             messages = messages.Where(m => !m.IsInternal);
         }
 
+        TicketCategoryResponse? categoryResponse = null;
+        if (ticket.CategoryId.HasValue)
+        {
+            TicketCategory? category = await context.TicketCategories
+                .AsNoTracking()
+                .SingleOrDefaultAsync(tc => tc.Id == ticket.CategoryId.Value, cancellationToken);
+
+            if (category is not null)
+            {
+                categoryResponse = new TicketCategoryResponse(
+                    category.Id,
+                    category.ProjectId,
+                    category.Name,
+                    category.Description,
+                    category.BackgroundColor,
+                    category.ForegroundColor,
+                    category.Status);
+            }
+        }
+
         var response = new TicketDetailResponse
         {
             Id = ticket.Id,
             ProjectId = ticket.ProjectId,
             CreatedByUserId = ticket.CreatedByUserId,
             AssignedToUserId = ticket.AssignedToUserId,
+            Category = categoryResponse,
             Title = ticket.Title,
             Status = ticket.Status,
             Priority = ticket.Priority,

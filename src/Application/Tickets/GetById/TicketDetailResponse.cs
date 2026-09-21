@@ -1,3 +1,4 @@
+using Application.TicketCategories;
 using Domain.Tickets;
 
 namespace Application.Tickets.GetById;
@@ -11,6 +12,8 @@ public sealed record TicketDetailResponse
     public Guid CreatedByUserId { get; init; }
 
     public Guid? AssignedToUserId { get; init; }
+
+    public TicketCategoryResponse? Category { get; init; }
 
     public string Title { get; init; } = string.Empty;
 
