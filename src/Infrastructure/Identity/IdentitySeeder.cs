@@ -17,7 +17,8 @@ public static class IdentitySeeder
             .. Permissions.Organizations.All,
             .. Permissions.Projects.All,
             .. Permissions.Users.All,
-            .. Permissions.Tickets.All]);
+            .. Permissions.Tickets.All,
+            .. Permissions.Wiki.All]);
     }
 
     private static async Task SeedRoleAsync(RoleManager<Role> roleManager, string roleName, IReadOnlyCollection<string> permissions)
