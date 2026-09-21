@@ -14,6 +14,7 @@ public interface IApplicationDbContext
     DbSet<Project> Projects { get; }
     DbSet<ProjectAssignment> ProjectAssignments { get; }
     DbSet<Ticket> Tickets { get; }
+    DbSet<TicketCategory> TicketCategories { get; }
     DbSet<TicketMessage> TicketMessages { get; }
     DbSet<TicketAttachment> TicketAttachments { get; }
     DbSet<WikiPage> WikiPages { get; }

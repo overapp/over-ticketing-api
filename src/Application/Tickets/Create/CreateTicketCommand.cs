@@ -8,4 +8,5 @@ public sealed record CreateTicketCommand(
     string Title,
     string Message,
     TicketPriority Priority = TicketPriority.Medium,
+    Guid? CategoryId = null,
     IReadOnlyCollection<FileUploadModel>? Attachments = null) : ICommand<Guid>;

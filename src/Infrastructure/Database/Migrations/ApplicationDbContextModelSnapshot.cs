@@ -131,6 +131,10 @@ namespace Infrastructure.Database.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("assigned_to_user_id");
 
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("category_id");
+
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("closed_at");
@@ -191,6 +195,9 @@ namespace Infrastructure.Database.Migrations
                     b.HasIndex("AssignedToUserId")
                         .HasDatabaseName("ix_tickets_assigned_to_user_id");
 
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_tickets_category_id");
+
                     b.HasIndex("CreatedByUserId")
                         .HasDatabaseName("ix_tickets_created_by_user_id");
 
@@ -244,6 +251,77 @@ namespace Infrastructure.Database.Migrations
                         .HasDatabaseName("ix_ticket_attachments_ticket_message_id");
 
                     b.ToTable("ticket_attachments", "dbo");
+                });
+
+            modelBuilder.Entity("Domain.Tickets.TicketCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BackgroundColor")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)")
+                        .HasDefaultValue("#64748B")
+                        .HasColumnName("background_color");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasDefaultValue("")
+                        .HasColumnName("description");
+
+                    b.Property<string>("ForegroundColor")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)")
+                        .HasDefaultValue("#FFFFFF")
+                        .HasColumnName("foreground_color");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ticket_categories");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ticket_categories_name")
+                        .HasFilter("[project_id] IS NULL");
+
+                    b.HasIndex("ProjectId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ticket_categories_project_id_name")
+                        .HasFilter("[project_id] IS NOT NULL");
+
+                    b.ToTable("ticket_categories", "dbo");
                 });
 
             modelBuilder.Entity("Domain.Tickets.TicketMessage", b =>
@@ -775,6 +853,12 @@ namespace Infrastructure.Database.Migrations
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_tickets_users_assigned_to_user_id");
 
+                    b.HasOne("Domain.Tickets.TicketCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_tickets_ticket_categories_category_id");
+
                     b.HasOne("Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
@@ -798,6 +882,15 @@ namespace Infrastructure.Database.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_ticket_attachments_ticket_messages_ticket_message_id");
+                });
+
+            modelBuilder.Entity("Domain.Tickets.TicketCategory", b =>
+                {
+                    b.HasOne("Domain.Projects.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_ticket_categories_projects_project_id");
                 });
 
             modelBuilder.Entity("Domain.Tickets.TicketMessage", b =>

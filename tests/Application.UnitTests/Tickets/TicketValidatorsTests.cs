@@ -2,6 +2,7 @@ using Application.Tickets;
 using Application.Tickets.Assign;
 using Application.Tickets.Create;
 using Application.Tickets.Reply;
+using Application.Tickets.UpdateCategory;
 using Application.Tickets.UpdatePriority;
 using Application.Tickets.UpdateStatus;
 using Domain.Tickets;
@@ -16,6 +17,7 @@ public sealed class TicketValidatorsTests
     private readonly AssignTicketCommandValidator _assignValidator = new();
     private readonly UpdateTicketStatusCommandValidator _statusValidator = new();
     private readonly UpdateTicketPriorityCommandValidator _priorityValidator = new();
+    private readonly UpdateTicketCategoryCommandValidator _categoryValidator = new();
 
     [Fact]
     public void CreateValidator_Should_HaveError_WhenProjectIdIsEmpty()
@@ -137,5 +139,37 @@ public sealed class TicketValidatorsTests
         var command = new UpdateTicketPriorityCommand(Guid.Empty, TicketPriority.Urgent);
         TestValidationResult<UpdateTicketPriorityCommand> result = _priorityValidator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(c => c.TicketId);
+    }
+
+    [Fact]
+    public void CreateValidator_Should_HaveError_WhenCategoryIdIsEmptyGuid()
+    {
+        var command = new CreateTicketCommand(Guid.NewGuid(), "Bug", "Message", CategoryId: Guid.Empty);
+        TestValidationResult<CreateTicketCommand> result = _createValidator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.CategoryId);
+    }
+
+    [Fact]
+    public void UpdateCategoryValidator_Should_HaveError_WhenTicketIdIsEmpty()
+    {
+        var command = new UpdateTicketCategoryCommand(Guid.Empty, null);
+        TestValidationResult<UpdateTicketCategoryCommand> result = _categoryValidator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.TicketId);
+    }
+
+    [Fact]
+    public void UpdateCategoryValidator_Should_HaveError_WhenCategoryIdIsEmptyGuid()
+    {
+        var command = new UpdateTicketCategoryCommand(Guid.NewGuid(), Guid.Empty);
+        TestValidationResult<UpdateTicketCategoryCommand> result = _categoryValidator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.CategoryId);
+    }
+
+    [Fact]
+    public void UpdateCategoryValidator_Should_NotHaveError_WhenValid()
+    {
+        var command = new UpdateTicketCategoryCommand(Guid.NewGuid(), Guid.NewGuid());
+        TestValidationResult<UpdateTicketCategoryCommand> result = _categoryValidator.TestValidate(command);
+        result.ShouldNotHaveAnyValidationErrors();
     }
 }

@@ -24,6 +24,8 @@ public sealed class TestDbContext(DbContextOptions<TestDbContext> options)
 
     public DbSet<Ticket> Tickets { get; set; }
 
+    public DbSet<TicketCategory> TicketCategories { get; set; }
+
     public DbSet<TicketMessage> TicketMessages { get; set; }
 
     public DbSet<TicketAttachment> TicketAttachments { get; set; }

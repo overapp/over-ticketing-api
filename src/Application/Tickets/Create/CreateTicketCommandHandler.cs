@@ -44,6 +44,28 @@ internal sealed class CreateTicketCommandHandler(
             return Result.Failure<Guid>(TicketErrors.UserNotInProject(userId, command.ProjectId));
         }
 
+        if (command.CategoryId.HasValue)
+        {
+            TicketCategory? category = await context.TicketCategories
+                .AsNoTracking()
+                .SingleOrDefaultAsync(tc => tc.Id == command.CategoryId.Value, cancellationToken);
+
+            if (category is null)
+            {
+                return Result.Failure<Guid>(TicketCategoryErrors.NotFound(command.CategoryId.Value));
+            }
+
+            if (category.Status == TicketCategoryStatus.Archived)
+            {
+                return Result.Failure<Guid>(TicketCategoryErrors.CategoryArchived(command.CategoryId.Value));
+            }
+
+            if (category.ProjectId.HasValue && category.ProjectId.Value != command.ProjectId)
+            {
+                return Result.Failure<Guid>(TicketCategoryErrors.InvalidForProject(command.CategoryId.Value, command.ProjectId));
+            }
+        }
+
         DateTime now = dateTimeProvider.UtcNow;
         (DateTime firstResponseDueAt, DateTime resolutionDueAt) = TicketSlaCalculator.CalculateDueDates(now, command.Priority);
 
@@ -52,6 +74,8 @@ internal sealed class CreateTicketCommandHandler(
             Id = Guid.NewGuid(),
             ProjectId = command.ProjectId,
             CreatedByUserId = userId,
+            AssignedToUserId = null,
+            CategoryId = command.CategoryId,
             Title = command.Title,
             Status = TicketStatus.New,
             Priority = command.Priority,

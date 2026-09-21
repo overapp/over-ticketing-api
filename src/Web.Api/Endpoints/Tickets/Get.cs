@@ -22,6 +22,7 @@ internal sealed class Get : IEndpoint
             TicketStatus? status,
             TicketPriority? priority,
             Guid? assignedToUserId,
+            Guid? categoryId,
             IQueryHandler<GetTicketsQuery, PagedResponse<TicketSummaryResponse>> handler,
             CancellationToken cancellationToken) =>
         {
@@ -32,7 +33,8 @@ internal sealed class Get : IEndpoint
                 searchTerm,
                 status,
                 priority,
-                assignedToUserId);
+                assignedToUserId,
+                categoryId);
 
             Result<PagedResponse<TicketSummaryResponse>> result = await handler.Handle(query, cancellationToken);
 

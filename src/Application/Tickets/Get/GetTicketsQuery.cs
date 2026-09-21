@@ -11,4 +11,5 @@ public sealed record GetTicketsQuery(
     string? SearchTerm = null,
     TicketStatus? Status = null,
     TicketPriority? Priority = null,
-    Guid? AssignedToUserId = null) : IQuery<PagedResponse<TicketSummaryResponse>>;
+    Guid? AssignedToUserId = null,
+    Guid? CategoryId = null) : IQuery<PagedResponse<TicketSummaryResponse>>;

@@ -21,6 +21,10 @@ public sealed class CreateTicketCommandValidator : AbstractValidator<CreateTicke
         RuleFor(command => command.Priority)
             .IsInEnum();
 
+        RuleFor(command => command.CategoryId)
+            .Must(id => !id.HasValue || id.Value != Guid.Empty)
+            .WithMessage("CategoryId must not be empty.");
+
         RuleFor(command => command.Attachments)
             .Must(attachments => attachments is null || attachments.Count <= 5)
             .WithMessage("A maximum of 5 attachments are allowed per message.");
