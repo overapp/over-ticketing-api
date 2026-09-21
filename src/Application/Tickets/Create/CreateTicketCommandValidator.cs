@@ -1,3 +1,4 @@
+using Application.Common.Validation;
 using FluentValidation;
 
 namespace Application.Tickets.Create;
@@ -14,7 +15,8 @@ public sealed class CreateTicketCommandValidator : AbstractValidator<CreateTicke
 
         RuleFor(command => command.Message)
             .NotEmpty()
-            .MaximumLength(10000);
+            .MaximumLength(10000)
+            .ValidMarkdown();
 
         RuleFor(command => command.Priority)
             .IsInEnum();

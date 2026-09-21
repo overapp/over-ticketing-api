@@ -60,9 +60,25 @@ public sealed class TicketValidatorsTests
     [Fact]
     public void CreateValidator_Should_NotHaveError_WhenCommandIsValid()
     {
-        var command = new CreateTicketCommand(Guid.NewGuid(), "Bug", "Message");
+        var command = new CreateTicketCommand(Guid.NewGuid(), "Bug", "Message with **markdown** and [link](https://example.com)");
         TestValidationResult<CreateTicketCommand> result = _createValidator.TestValidate(command);
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void CreateValidator_Should_HaveError_WhenMessageContainsRawHtml()
+    {
+        var command = new CreateTicketCommand(Guid.NewGuid(), "Bug", "Message with <script>alert(1)</script>");
+        TestValidationResult<CreateTicketCommand> result = _createValidator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.Message);
+    }
+
+    [Fact]
+    public void CreateValidator_Should_HaveError_WhenMessageContainsMaliciousLink()
+    {
+        var command = new CreateTicketCommand(Guid.NewGuid(), "Bug", "Message with [click](javascript:alert(1))");
+        TestValidationResult<CreateTicketCommand> result = _createValidator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.Message);
     }
 
     [Theory]
@@ -73,6 +89,30 @@ public sealed class TicketValidatorsTests
         var command = new ReplyTicketCommand(Guid.NewGuid(), content!);
         TestValidationResult<ReplyTicketCommand> result = _replyValidator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(c => c.Content);
+    }
+
+    [Fact]
+    public void ReplyValidator_Should_HaveError_WhenContentContainsRawHtml()
+    {
+        var command = new ReplyTicketCommand(Guid.NewGuid(), "Reply with <img src=x onerror=alert(1)>");
+        TestValidationResult<ReplyTicketCommand> result = _replyValidator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.Content);
+    }
+
+    [Fact]
+    public void ReplyValidator_Should_HaveError_WhenContentContainsMaliciousLink()
+    {
+        var command = new ReplyTicketCommand(Guid.NewGuid(), "Reply with [click](data:text/html;base64,123)");
+        TestValidationResult<ReplyTicketCommand> result = _replyValidator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.Content);
+    }
+
+    [Fact]
+    public void ReplyValidator_Should_NotHaveError_WhenCommandIsValid()
+    {
+        var command = new ReplyTicketCommand(Guid.NewGuid(), "Reply with `code` and [link](https://example.com)");
+        TestValidationResult<ReplyTicketCommand> result = _replyValidator.TestValidate(command);
+        result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
