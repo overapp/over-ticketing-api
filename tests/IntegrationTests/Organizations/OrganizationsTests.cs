@@ -141,4 +141,51 @@ public sealed class OrganizationsTests(IntegrationTestAppHost appHost) : BaseInt
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 
+    [Fact]
+    public async Task Get_Should_ReturnUnauthorized_WhenRequestIsNotAuthenticated()
+    {
+        // Act
+        HttpResponseMessage response = await HttpClient.GetAsync("organizations");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Get_Should_ReturnForbidden_WhenUserLacksReadPermission()
+    {
+        // Arrange
+        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.GetAsync("organizations");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetById_Should_ReturnUnauthorized_WhenRequestIsNotAuthenticated()
+    {
+        // Act
+        HttpResponseMessage response = await HttpClient.GetAsync($"organizations/{Guid.NewGuid()}");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task GetById_Should_ReturnForbidden_WhenUserLacksReadPermission()
+    {
+        // Arrange
+        (_, AccessTokens tokens) = await RegisterAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.GetAsync($"organizations/{Guid.NewGuid()}");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
 }

@@ -64,6 +64,26 @@ public static class UserErrors
         "Users.InvalidUserName",
         "The provided username is invalid");
 
+    public static readonly Error CannotDeleteSelf = Error.Problem(
+        "Users.CannotDeleteSelf",
+        "You cannot delete your own user account");
+
+    public static readonly Error CannotDeleteLastAdmin = Error.Problem(
+        "Users.CannotDeleteLastAdmin",
+        "The last administrator account cannot be deleted");
+
+    public static readonly Error CannotDemoteSelf = Error.Problem(
+        "Users.CannotDemoteSelf",
+        "You cannot revoke your own administrator role");
+
+    public static readonly Error CannotDemoteLastAdmin = Error.Problem(
+        "Users.CannotDemoteLastAdmin",
+        "The last administrator account cannot be demoted");
+
+    public static Error InvalidRole(string role) => Error.Validation(
+        "Users.InvalidRole",
+        $"The role '{role}' is invalid");
+
     public static Error IdentityError(string code, string description) => Error.Failure(
         $"Users.{code}",
         description);

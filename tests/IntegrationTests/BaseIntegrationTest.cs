@@ -27,7 +27,7 @@ public abstract class BaseIntegrationTest : IDisposable
             password = "Password123!"
         };
 
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("users/register", request);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("auth/register", request);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadFromJsonAsync<Guid>();
@@ -37,7 +37,7 @@ public abstract class BaseIntegrationTest : IDisposable
     {
         var request = new { email, password = "Password123!" };
 
-        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("users/login", request);
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("auth/login", request);
         response.EnsureSuccessStatusCode();
 
         AccessTokens? tokens = await response.Content.ReadFromJsonAsync<AccessTokens>();

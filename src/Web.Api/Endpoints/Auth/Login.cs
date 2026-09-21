@@ -5,7 +5,7 @@ using SharedKernel;
 using Web.Api.Extensions;
 using Web.Api.Infrastructure;
 
-namespace Web.Api.Endpoints.Users;
+namespace Web.Api.Endpoints.Auth;
 
 internal sealed class Login : IEndpoint
 {
@@ -13,7 +13,7 @@ internal sealed class Login : IEndpoint
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("users/login", async (
+        app.MapPost("auth/login", async (
             Request request,
             ICommandHandler<LoginUserCommand, AccessTokensResponse> handler,
             CancellationToken cancellationToken) =>
@@ -24,7 +24,7 @@ internal sealed class Login : IEndpoint
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
-        .WithTags(Tags.Users)
+        .WithTags(Tags.Auth)
         .RequireRateLimiting(RateLimitingPolicies.Authentication);
     }
 }

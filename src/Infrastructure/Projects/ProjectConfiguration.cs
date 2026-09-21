@@ -20,5 +20,7 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.HasOne<Organization>()
             .WithMany(organization => organization.Projects)
             .HasForeignKey(project => project.OrganizationId);
+
+        builder.Ignore(project => project.Users);
     }
 }

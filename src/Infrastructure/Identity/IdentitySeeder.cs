@@ -13,10 +13,10 @@ public static class IdentitySeeder
     {
         await SeedRoleAsync(roleManager, RoleNames.User, []);
         await SeedRoleAsync(roleManager, RoleNames.Support, []);
-        await SeedRoleAsync(roleManager, RoleNames.Admin, [.. Permissions.Organizations.All, .. Permissions.Projects.All]);
-        roleManager,
-            administratorRole,
-            );
+        await SeedRoleAsync(roleManager, RoleNames.Admin, [
+            .. Permissions.Organizations.All,
+            .. Permissions.Projects.All,
+            .. Permissions.Users.All]);
     }
 
     private static async Task SeedRoleAsync(RoleManager<Role> roleManager, string roleName, IReadOnlyCollection<string> permissions)
@@ -25,6 +25,11 @@ public static class IdentitySeeder
 
         if (role is not null)
         {
+            if (permissions is not null && permissions.Any())
+            {
+                await SeedPermissionsAsync(roleManager, role, permissions);
+            }
+
             return;
         }
 
