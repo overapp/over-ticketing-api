@@ -16,3 +16,11 @@ Stack: **backend_net** · modalità **link**
 - [TESTING.md](.oa/stacks/backend_net/TESTING.md) · @.oa/stacks/backend_net/TESTING.md
 
 Gerarchia in caso di conflitto: **Core > Stack > Personalizzazione di progetto > DEVELOPER.md**.
+
+## Agent skills
+
+GitHub issues tracked with `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+Domain docs: single-context layout (CONTEXT.md + docs/adr/). See `docs/agents/domain.md`.

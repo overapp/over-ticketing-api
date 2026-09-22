@@ -15,6 +15,7 @@ using Infrastructure.Outbox;
 using Infrastructure.Queues;
 using Infrastructure.Storage;
 using Infrastructure.Time;
+using Infrastructure.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -55,6 +56,7 @@ public static class DependencyInjection
         services.AddTransient<IDomainEventToNotificationMapper, UserPasswordResetRequestedNotificationMapper>();
         services.AddTransient<IDomainEventToNotificationMapper, UserTemporaryPasswordAssignedNotificationMapper>();
         services.AddTransient<IDomainEventToNotificationMapper, UserPasswordChangedNotificationMapper>();
+        services.AddTransient<IDomainEventHandler<UserDeletedDomainEvent>, UserDeletedEventHandler>();
 
 #pragma warning disable EXTEXP0018 // HybridCache is released; the API is stable in .NET 10.
         services.AddHybridCache();
