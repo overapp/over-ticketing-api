@@ -1,3 +1,4 @@
+using Application.Abstractions.Authentication;
 using Application.Abstractions.Authorization;
 using Application.Abstractions.Messaging;
 using Application.Users.UpdateAvatar;
@@ -15,15 +16,22 @@ internal sealed class UpdateAvatar : IEndpoint
         app.MapPost("users/{userId:guid}/avatar", Handle)
             .WithTags(Tags.Users)
             .DisableAntiforgery()
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .HasPermission(Permissions.Users.Edit);
     }
 
     private static async Task<IResult> Handle(
         Guid userId,
         HttpRequest request,
+        IUserContext userContext,
         ICommandHandler<UpdateUserAvatarCommand> handler,
         CancellationToken cancellationToken)
     {
+        if (userId != userContext.UserId)
+        {
+            return Results.Forbid();
+        }
+
         if (!request.HasFormContentType)
         {
             return Results.BadRequest("Expected multipart/form-data content type.");
@@ -38,12 +46,13 @@ internal sealed class UpdateAvatar : IEndpoint
 
         IFormFile file = form.Files[0];
 
+        using Stream stream = file.OpenReadStream();
         var command = new UpdateUserAvatarCommand(
             userId,
             file.FileName,
             file.ContentType,
             file.Length,
-            file.OpenReadStream());
+            stream);
 
         Result result = await handler.Handle(command, cancellationToken);
 
