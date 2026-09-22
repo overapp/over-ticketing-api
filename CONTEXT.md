@@ -57,6 +57,48 @@ A person interacting with the system. Can have multiple roles across different p
 - Project assignments are deleted (user unassigned from projects)
 - Tickets they are assigned to become unassigned (`AssignedToUserId` → null)
 - Tickets they created cannot be deleted (constraint prevents user deletion)
+- User avatar (if set) is deleted via domain event and background job
+
+**Properties:**
+- `Name`: display name
+- `Email`: contact email
+- `ProfilePictureUrl` (nullable): URL reference to user's avatar in blob storage; null means no avatar uploaded yet
+
+---
+
+### Avatar
+
+A user's profile picture, visible throughout the system to personalize the interface.
+
+**Scope:**
+- All users (Admins, Agents, Customers) can upload and manage their own avatar
+- Avatar is public—visible to anyone who can see that user in the system
+- Users can only upload their own avatar; no admin override
+
+**Properties:**
+- `ProfilePictureUrl`: reference to blob storage (set via `User.ProfilePictureUrl`)
+- Fallback: If no avatar is uploaded, system displays initials avatar (computed from user's name, e.g., "MM" for Matteo Murdocco)
+
+**File constraints:**
+- Maximum size: 5 MB
+- Allowed formats: Any image type (JPEG, PNG, GIF, WebP, etc.)
+- Preferred: Square aspect ratio
+- Minimum resolution: 100×100 pixels (recommended for display quality)
+
+**Lifecycle:**
+- Users can upload/update their avatar anytime via `POST /users/{userId}/avatar`
+- Users can delete their avatar via `DELETE /users/{userId}/avatar` (reverts to initials)
+- On user deletion, avatar blob is deleted via domain event + background job cleanup
+- No version history; each upload replaces the previous avatar
+
+**API:**
+- `POST /users/{userId}/avatar`: Upload or update avatar (multipart/form-data)
+- `GET /users/{userId}/avatar`: Retrieve avatar as raw image bytes with `Content-Type` header
+- `DELETE /users/{userId}/avatar`: Remove avatar (user reverts to initials)
+
+**Validation:**
+- Command validator enforces file size, format, and dimension constraints
+- Frontend and API both serve the avatar (display locations determined by frontend)
 
 ---
 

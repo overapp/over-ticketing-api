@@ -107,4 +107,12 @@ public static class UserErrors
     public static Error IdentityError(string code, string description) => Error.Failure(
         $"Users.{code}",
         description);
+
+    public static readonly Error UpdateFailed = Error.Failure(
+        "Users.UpdateFailed",
+        "Failed to update user");
+
+    public static readonly Error AvatarUploadFailed = Error.Failure(
+        "Users.AvatarUploadFailed",
+        "Failed to upload avatar");
 }
