@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +36,14 @@ public sealed class IntegrationTestAppHost : IAsyncLifetime
     {
         IDistributedApplicationTestingBuilder appHost =
             await DistributedApplicationTestingBuilder.CreateAsync<Projects.AppHost>();
+
+        // The testing builder does not load the AppHost's user secrets, so supply a throwaway
+        // JWT key pair for the secret parameters. Tests then need no local secret setup.
+        using (var rsa = RSA.Create(2048))
+        {
+            appHost.Configuration["Parameters:jwt-private-key"] = Convert.ToBase64String(rsa.ExportPkcs8PrivateKey());
+            appHost.Configuration["Parameters:jwt-public-key"] = Convert.ToBase64String(rsa.ExportSubjectPublicKeyInfo());
+        }
 
         appHost.Services.AddLogging(logging => logging.SetMinimumLevel(LogLevel.Debug));
 

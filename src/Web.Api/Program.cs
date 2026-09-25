@@ -3,10 +3,13 @@ using Application;
 using HealthChecks.UI.Client;
 using Infrastructure;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
 using Web.Api;
 using Web.Api.Extensions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.AddKeyVaultConfiguration();
 
 builder.AddServiceDefaults();
 
@@ -24,6 +27,9 @@ builder.Services.AddRateLimitingInternal(builder.Configuration);
 builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
 
 WebApplication app = builder.Build();
+
+// Fail fast on missing or invalid configuration before migrations and seeding touch the database.
+app.Services.GetRequiredService<IStartupValidator>().Validate();
 
 app.MapEndpoints();
 

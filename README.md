@@ -70,14 +70,43 @@ generate a development key pair once and provide it to the app via configuration
    dotnet user-secrets set "Jwt:PublicKey" "$(cat jwt-public.b64)" --project src/Web.Api
    ```
 
-   The integration tests start the AppHost, so they need the AppHost secrets too.
+   The integration tests don't need these secrets: they generate a throwaway key pair for each run.
 
 4. Delete the intermediate PEM/base64 files (`jwt-private.pem`, `jwt-public.pem`, `jwt-private.b64`,
    `jwt-public.b64`) once the secrets are stored — they should never be committed to source control.
 
-For non-local environments, provide `Jwt:PrivateKey` and `Jwt:PublicKey` (or the equivalent
-`Jwt__PrivateKey` / `Jwt__PublicKey` environment variables) through your secret manager of choice
-(e.g. Azure Key Vault, AWS Secrets Manager) instead of `appsettings.json`.
+### Secrets outside Development (Azure Key Vault)
+
+Outside the `Development` environment the API loads its secrets from Azure Key Vault and refuses
+to start without it. Configure (as app settings / environment variables, not secrets):
+
+| Setting | Value |
+| --- | --- |
+| `KeyVault__Uri` | The vault URI, e.g. `https://<vault-name>.vault.azure.net/` |
+| `KeyVault__ManagedIdentityClientId` | Client ID of a user-assigned managed identity. Leave unset for a system-assigned identity. |
+
+The API authenticates with `DefaultAzureCredential` (managed identity in Azure, Azure CLI / Visual
+Studio sign-in when run locally), so that identity needs the **Key Vault Secrets User** role on the vault.
+
+Key Vault secret names use `--` in place of `:`:
+
+| Secret name | Required |
+| --- | --- |
+| `Jwt--PrivateKey` | Always |
+| `Jwt--PublicKey` | Always |
+| `ConnectionStrings--Database` | Always |
+| `ConnectionStrings--BlobStorage` | Always |
+| `ConnectionStrings--QueueStorage` | Always |
+| `Email--AzureCommunicationServices--ConnectionString` | When `Email:Provider` is `AzureCommunicationServices` |
+| `Email--Smtp--Password` | When the SMTP server requires authentication |
+
+Non-secret JWT settings (`Jwt:Issuer`, `Jwt:Audience`, `Jwt:ExpirationInMinutes`) can live in the vault
+or in regular configuration.
+
+On startup the API validates all required settings, in every environment, before touching the
+database: missing values, malformed RSA keys, or a public key that doesn't belong to the private key
+stop the app with a message naming each offending setting. Secrets are read once at startup, so restart
+the app after rotating a secret in the vault.
 
 Run the full test suite (the integration tests start the Aspire AppHost with SQL Server, so
 a container runtime must be running):
