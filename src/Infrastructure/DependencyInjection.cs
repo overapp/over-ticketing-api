@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using Application.Abstractions.Authentication;
+﻿using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Emails;
 using Application.Abstractions.Notifications;
@@ -23,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SharedKernel;
 
@@ -67,20 +67,25 @@ public static class DependencyInjection
 
     private static IServiceCollection AddStorage(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<AzureBlobStorageOptions>(options =>
-        {
-            configuration.GetSection(AzureBlobStorageOptions.SectionName).Bind(options);
-
-            string? connectionString =
-                configuration.GetConnectionString("blobs") ??
-                configuration.GetConnectionString("storage") ??
-                configuration.GetConnectionString("BlobStorage");
-
-            if (!string.IsNullOrWhiteSpace(connectionString))
+        services.AddOptions<AzureBlobStorageOptions>()
+            .Configure(options =>
             {
-                options.ConnectionString = connectionString;
-            }
-        });
+                configuration.GetSection(AzureBlobStorageOptions.SectionName).Bind(options);
+
+                string? connectionString =
+                    configuration.GetConnectionString("blobs") ??
+                    configuration.GetConnectionString("storage") ??
+                    configuration.GetConnectionString("BlobStorage");
+
+                if (!string.IsNullOrWhiteSpace(connectionString))
+                {
+                    options.ConnectionString = connectionString;
+                }
+            })
+            .Validate(
+                options => !string.IsNullOrWhiteSpace(options.ConnectionString),
+                "Blob storage connection string is required: set 'ConnectionStrings:BlobStorage'.")
+            .ValidateOnStart();
 
         services.AddTransient<IFileStorageService, AzureBlobStorageService>();
 
@@ -89,20 +94,25 @@ public static class DependencyInjection
 
     private static IServiceCollection AddQueues(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<AzureQueueStorageOptions>(options =>
-        {
-            configuration.GetSection(AzureQueueStorageOptions.SectionName).Bind(options);
-
-            string? connectionString =
-                configuration.GetConnectionString("queues") ??
-                configuration.GetConnectionString("storage") ??
-                configuration.GetConnectionString("QueueStorage");
-
-            if (!string.IsNullOrWhiteSpace(connectionString))
+        services.AddOptions<AzureQueueStorageOptions>()
+            .Configure(options =>
             {
-                options.ConnectionString = connectionString;
-            }
-        });
+                configuration.GetSection(AzureQueueStorageOptions.SectionName).Bind(options);
+
+                string? connectionString =
+                    configuration.GetConnectionString("queues") ??
+                    configuration.GetConnectionString("storage") ??
+                    configuration.GetConnectionString("QueueStorage");
+
+                if (!string.IsNullOrWhiteSpace(connectionString))
+                {
+                    options.ConnectionString = connectionString;
+                }
+            })
+            .Validate(
+                options => !string.IsNullOrWhiteSpace(options.ConnectionString),
+                "Queue storage connection string is required: set 'ConnectionStrings:QueueStorage'.")
+            .ValidateOnStart();
 
         services.AddHostedService<OutboxPublisherBackgroundService>();
         services.AddHostedService<AzureQueueConsumerBackgroundService>();
@@ -112,13 +122,19 @@ public static class DependencyInjection
 
     private static IServiceCollection AddEmail(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.AddOptions<EmailOptions>()
+            .Bind(configuration.GetSection(EmailOptions.SectionName))
+            .Validate(
+                options => !IsAzureCommunicationServices(options.Provider) ||
+                    !string.IsNullOrWhiteSpace(options.AzureCommunicationServices.ConnectionString),
+                "'Email:AzureCommunicationServices:ConnectionString' is required when 'Email:Provider' is 'AzureCommunicationServices'.")
+            .ValidateOnStart();
         services.Configure<EmailNotificationOptions>(configuration.GetSection(EmailNotificationOptions.SectionName));
 
         services.AddTransient<IEmailTemplateRenderer, FluidEmailTemplateRenderer>();
 
         string emailProvider = configuration.GetValue<string>("Email:Provider") ?? "Smtp";
-        if (string.Equals(emailProvider, "AzureCommunicationServices", StringComparison.OrdinalIgnoreCase))
+        if (IsAzureCommunicationServices(emailProvider))
         {
             services.AddTransient<IEmailSender, AzureCommunicationServicesEmailSender>();
         }
@@ -130,9 +146,19 @@ public static class DependencyInjection
         return services;
     }
 
+    private static bool IsAzureCommunicationServices(string? provider) =>
+        string.Equals(provider, "AzureCommunicationServices", StringComparison.OrdinalIgnoreCase);
+
     private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         string? connectionString = configuration.GetConnectionString("Database");
+
+        services.AddOptions<DatabaseOptions>()
+            .Configure(options => options.ConnectionString = connectionString ?? string.Empty)
+            .Validate(
+                options => !string.IsNullOrWhiteSpace(options.ConnectionString),
+                "Database connection string is required: set 'ConnectionStrings:Database'.")
+            .ValidateOnStart();
 
         services.AddDbContext<ApplicationDbContext>(
             options => options
@@ -179,15 +205,24 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
+        services.AddSingleton<JwtSigningKeys>();
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(o =>
+            .AddJwtBearer();
+
+        services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+            .Configure<IOptions<JwtOptions>, JwtSigningKeys>((o, jwtOptions, signingKeys) =>
             {
                 o.RequireHttpsMetadata = false;
                 o.TokenValidationParameters = new TokenValidationParameters
                 {
-                    IssuerSigningKey = CreatePublicSigningKey(configuration),
-                    ValidIssuer = configuration["Jwt:Issuer"],
-                    ValidAudience = configuration["Jwt:Audience"],
+                    IssuerSigningKey = signingKeys.ValidationKey,
+                    ValidIssuer = jwtOptions.Value.Issuer,
+                    ValidAudience = jwtOptions.Value.Audience,
                     ClockSkew = TimeSpan.Zero
                 };
             });
@@ -198,18 +233,6 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordGenerator, CryptographicPasswordGenerator>();
 
         return services;
-    }
-
-    private static RsaSecurityKey CreatePublicSigningKey(IConfiguration configuration)
-    {
-        string publicKeyBase64 = configuration["Jwt:PublicKey"]!;
-
-#pragma warning disable CA2000 // The RSA instance is owned by the returned RsaSecurityKey and used for the lifetime of the app.
-        var rsa = RSA.Create();
-#pragma warning restore CA2000
-        rsa.ImportSubjectPublicKeyInfo(Convert.FromBase64String(publicKeyBase64), out _);
-
-        return new RsaSecurityKey(rsa);
     }
 
     private static IServiceCollection AddAuthorizationInternal(this IServiceCollection services)
