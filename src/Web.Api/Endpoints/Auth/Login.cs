@@ -9,12 +9,12 @@ namespace Web.Api.Endpoints.Auth;
 
 internal sealed class Login : IEndpoint
 {
-    public sealed record Request(string Email, string Password);
+    public sealed record LoginRequest(string Email, string Password);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("auth/login", async (
-            Request request,
+            LoginRequest request,
             ICommandHandler<LoginUserCommand, AccessTokensResponse> handler,
             CancellationToken cancellationToken) =>
         {
@@ -25,6 +25,10 @@ internal sealed class Login : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Auth)
-        .RequireRateLimiting(RateLimitingPolicies.Authentication);
+        .WithName("Login")
+        .WithSummary("Authenticate with email and password and receive access and refresh tokens.")
+        .RequireRateLimiting(RateLimitingPolicies.Authentication)
+        .Produces<AccessTokensResponse>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status404NotFound, "Users.NotFoundByEmail", "The email or password is incorrect.");
     }
 }

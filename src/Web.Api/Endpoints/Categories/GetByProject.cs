@@ -24,6 +24,10 @@ internal sealed class GetByProject : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Categories)
-        .HasPermission(Permissions.Tickets.Read);
+        .WithName("GetProjectTicketCategories")
+        .WithSummary("List the ticket categories available to a project.")
+        .HasPermission(Permissions.Tickets.Read)
+        .Produces<IReadOnlyCollection<TicketCategoryResponse>>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.");
     }
 }

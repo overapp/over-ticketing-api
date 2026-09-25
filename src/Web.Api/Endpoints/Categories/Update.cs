@@ -9,7 +9,7 @@ namespace Web.Api.Endpoints.Categories;
 
 internal sealed class Update : IEndpoint
 {
-    public sealed record Request(
+    public sealed record UpdateCategoryRequest(
         string Name,
         string? Description,
         string? BackgroundColor,
@@ -19,7 +19,7 @@ internal sealed class Update : IEndpoint
     {
         app.MapPut("categories/{categoryId:guid}", async (
             Guid categoryId,
-            Request request,
+            UpdateCategoryRequest request,
             ICommandHandler<UpdateTicketCategoryCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -35,6 +35,12 @@ internal sealed class Update : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Categories)
-        .HasPermission(Permissions.Categories.Manage);
+        .WithName("UpdateTicketCategory")
+        .WithSummary("Rename or recolor an existing ticket category.")
+        .HasPermission(Permissions.Categories.Manage)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "TicketCategories.NotFound", "No ticket category exists with the specified Id.")
+        .ProducesError(StatusCodes.Status409Conflict, "TicketCategories.NameNotUnique", "A ticket category with the given name already exists in this scope.");
     }
 }

@@ -23,6 +23,13 @@ internal sealed class Delete : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .HasPermission(Permissions.Users.Delete)
-        .WithTags(Tags.Users);
+        .WithTags(Tags.Users)
+        .WithName("DeleteUser")
+        .WithSummary("Permanently delete a user account.")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Users.NotFound", "No user exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Users.CannotDeleteSelf", "You cannot delete your own user account.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Users.CannotDeleteLastAdmin", "The last administrator account cannot be deleted.");
     }
 }

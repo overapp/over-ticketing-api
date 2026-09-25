@@ -23,6 +23,12 @@ internal sealed class Archive : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Categories)
-        .HasPermission(Permissions.Categories.Manage);
+        .WithName("ArchiveTicketCategory")
+        .WithSummary("Archive a ticket category so it can no longer be assigned.")
+        .HasPermission(Permissions.Categories.Manage)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "TicketCategories.NotFound", "No ticket category exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "TicketCategories.AlreadyArchived", "The ticket category is already archived.");
     }
 }

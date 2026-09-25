@@ -8,12 +8,12 @@ namespace Web.Api.Endpoints.Auth;
 
 internal sealed class ForgotPassword : IEndpoint
 {
-    public sealed record Request(string Email);
+    public sealed record ForgotPasswordRequest(string Email);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("auth/forgot-password", async (
-            Request request,
+            ForgotPasswordRequest request,
             ICommandHandler<ForgotPasswordCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -24,6 +24,10 @@ internal sealed class ForgotPassword : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Auth)
-        .RequireRateLimiting(RateLimitingPolicies.Authentication);
+        .WithName("ForgotPassword")
+        .WithSummary("Request a password reset email for the given address.")
+        .RequireRateLimiting(RateLimitingPolicies.Authentication)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError();
     }
 }

@@ -9,7 +9,7 @@ namespace Web.Api.Endpoints.Categories;
 
 internal sealed class CreateGlobal : IEndpoint
 {
-    public sealed record Request(
+    public sealed record CreateGlobalCategoryRequest(
         string Name,
         string? Description,
         string? BackgroundColor,
@@ -18,7 +18,7 @@ internal sealed class CreateGlobal : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("categories", async (
-            Request request,
+            CreateGlobalCategoryRequest request,
             ICommandHandler<CreateGlobalTicketCategoryCommand, Guid> handler,
             CancellationToken cancellationToken) =>
         {
@@ -35,6 +35,11 @@ internal sealed class CreateGlobal : IEndpoint
                 CustomResults.Problem);
         })
         .WithTags(Tags.Categories)
-        .HasPermission(Permissions.Categories.Manage);
+        .WithName("CreateGlobalTicketCategory")
+        .WithSummary("Create a ticket category available to all projects.")
+        .HasPermission(Permissions.Categories.Manage)
+        .Produces<Guid>(StatusCodes.Status201Created)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status409Conflict, "TicketCategories.NameNotUnique", "A ticket category with the given name already exists in this scope.");
     }
 }

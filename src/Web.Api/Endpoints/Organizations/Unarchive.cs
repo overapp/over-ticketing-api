@@ -21,6 +21,12 @@ internal sealed class Unarchive : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Organizations)
-        .HasPermission(Permissions.Organizations.Archive);
+        .WithName("UnarchiveOrganization")
+        .WithSummary("Reactivate an archived organization.")
+        .HasPermission(Permissions.Organizations.Archive)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Organizations.NotFound", "No organization exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Organizations.AlreadyActive", "The organization is already active.");
     }
 }

@@ -1,5 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.Common;
+using Application.Organizations;
 using Domain.Organizations;
 
 namespace Application.Organizations.Get;

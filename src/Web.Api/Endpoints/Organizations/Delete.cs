@@ -23,6 +23,11 @@ internal sealed class Delete : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Organizations)
-        .HasPermission(Permissions.Organizations.Delete);
+        .WithName("DeleteOrganization")
+        .WithSummary("Permanently delete an organization.")
+        .HasPermission(Permissions.Organizations.Delete)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Organizations.NotFound", "No organization exists with the specified Id.");
     }
 }

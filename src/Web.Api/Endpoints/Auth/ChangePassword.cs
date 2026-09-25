@@ -8,7 +8,7 @@ namespace Web.Api.Endpoints.Auth;
 
 internal sealed class ChangePassword : IEndpoint
 {
-    public sealed record Request(
+    public sealed record ChangePasswordRequest(
         string CurrentPassword,
         string NewPassword,
         string ConfirmNewPassword);
@@ -16,7 +16,7 @@ internal sealed class ChangePassword : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("auth/change-password", async (
-            Request request,
+            ChangePasswordRequest request,
             ICommandHandler<ChangePasswordCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -31,6 +31,13 @@ internal sealed class ChangePassword : IEndpoint
         })
         .RequireAuthorization()
         .WithTags(Tags.Auth)
-        .RequireRateLimiting(RateLimitingPolicies.Authentication);
+        .WithName("ChangePassword")
+        .WithSummary("Change the authenticated user's password.")
+        .RequireRateLimiting(RateLimitingPolicies.Authentication)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Users.NotFound", "No user exists for the current caller.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Users.UserLockedOut", "The user account is locked out due to too many failed attempts.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Users.InvalidCurrentPassword", "The current password provided is incorrect.");
     }
 }

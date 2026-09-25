@@ -1,6 +1,7 @@
 using Application.Abstractions.Authorization;
 using Application.Abstractions.Messaging;
 using Application.Common;
+using Application.Projects;
 using Application.Projects.Get;
 using Domain.Projects;
 using SharedKernel;
@@ -11,7 +12,7 @@ namespace Web.Api.Endpoints.Projects;
 
 internal sealed class Get : IEndpoint
 {
-    public sealed record Request(
+    public sealed record GetProjectsRequest(
         int Page = 1,
         int PageSize = 10,
         string? SearchTerm = null,
@@ -21,7 +22,7 @@ internal sealed class Get : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("projects", async (
-            [AsParameters] Request request,
+            [AsParameters] GetProjectsRequest request,
             IQueryHandler<GetProjectsQuery, PagedResponse<ProjectResponse>> handler,
             CancellationToken cancellationToken) =>
         {
@@ -37,6 +38,9 @@ internal sealed class Get : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Projects)
-        .HasPermission(Permissions.Projects.Read);
+        .WithName("GetProjects")
+        .WithSummary("List projects, with optional search and status filters.")
+        .HasPermission(Permissions.Projects.Read)
+        .Produces<PagedResponse<ProjectResponse>>(StatusCodes.Status200OK);
     }
 }

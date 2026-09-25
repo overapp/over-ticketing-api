@@ -9,13 +9,13 @@ namespace Web.Api.Endpoints.Projects;
 
 internal sealed class Update : IEndpoint
 {
-    public sealed record Request(string Name, string Description);
+    public sealed record UpdateProjectRequest(string Name, string Description);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("projects/{id:guid}", async (
             Guid id,
-            Request request,
+            UpdateProjectRequest request,
             ICommandHandler<UpdateProjectCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -26,6 +26,11 @@ internal sealed class Update : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Projects)
-        .HasPermission(Permissions.Projects.Edit);
+        .WithName("UpdateProject")
+        .WithSummary("Update a project's name and description.")
+        .HasPermission(Permissions.Projects.Edit)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.");
     }
 }

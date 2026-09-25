@@ -12,7 +12,7 @@ namespace Web.Api.Endpoints.Wiki;
 
 internal sealed class CreateGlobalWikiPage : IEndpoint
 {
-    public sealed record Request(
+    public sealed record CreateGlobalWikiPageRequest(
         string Title,
         string? Slug,
         string Content,
@@ -22,7 +22,7 @@ internal sealed class CreateGlobalWikiPage : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("wiki/global", async (
-            Request request,
+            CreateGlobalWikiPageRequest request,
             ICommandHandler<CreateGlobalWikiPageCommand, Guid> handler,
             CancellationToken cancellationToken) =>
         {
@@ -40,6 +40,14 @@ internal sealed class CreateGlobalWikiPage : IEndpoint
                 CustomResults.Problem);
         })
         .WithTags(Tags.Wiki)
-        .HasPermission(Permissions.Wiki.Create);
+        .WithName("CreateGlobalWikiPage")
+        .WithSummary("Create a wiki page visible across all projects.")
+        .HasPermission(Permissions.Wiki.Create)
+        .Produces<Guid>(StatusCodes.Status201Created)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status400BadRequest, "WikiPages.GlobalPagesRequireAdmin", "Only system administrators can create global wiki pages.")
+        .ProducesError(StatusCodes.Status404NotFound, "WikiPages.ParentNotFound", "No parent wiki page exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "WikiPages.ParentScopeMismatch", "The parent page belongs to a different project or scope.")
+        .ProducesError(StatusCodes.Status409Conflict, "WikiPages.SlugAlreadyExists", "A wiki page with the resulting slug already exists in this scope.");
     }
 }

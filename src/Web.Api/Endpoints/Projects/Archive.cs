@@ -21,6 +21,12 @@ internal sealed class Archive : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Projects)
-        .HasPermission(Permissions.Projects.Archive);
+        .WithName("ArchiveProject")
+        .WithSummary("Archive a project.")
+        .HasPermission(Permissions.Projects.Archive)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Projects.AlreadyArchived", "The project is already archived.");
     }
 }

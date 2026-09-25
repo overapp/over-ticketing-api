@@ -8,12 +8,12 @@ namespace Web.Api.Endpoints.Auth;
 
 internal sealed class Register : IEndpoint
 {
-    public sealed record Request(string Email, string FirstName, string LastName, string Password);
+    public sealed record RegisterRequest(string Email, string FirstName, string LastName, string Password);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("auth/register", async (
-            Request request,
+            RegisterRequest request,
             ICommandHandler<RegisterUserCommand, Guid> handler,
             CancellationToken cancellationToken) =>
         {
@@ -28,6 +28,11 @@ internal sealed class Register : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Auth)
-        .RequireRateLimiting(RateLimitingPolicies.Authentication);
+        .WithName("Register")
+        .WithSummary("Self-register a new user account.")
+        .RequireRateLimiting(RateLimitingPolicies.Authentication)
+        .Produces<Guid>(StatusCodes.Status200OK)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status409Conflict, "Users.DuplicateEmail", "A user with the provided email already exists.");
     }
 }

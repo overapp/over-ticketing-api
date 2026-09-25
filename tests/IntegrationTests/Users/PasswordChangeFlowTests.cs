@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using Application.Users.GetById;
 
 namespace IntegrationTests.Users;
 

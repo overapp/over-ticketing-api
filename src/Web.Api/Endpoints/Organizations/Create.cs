@@ -9,12 +9,12 @@ namespace Web.Api.Endpoints.Organizations;
 
 internal sealed class Create : IEndpoint
 {
-    public sealed record Request(string Name, string Logo);
+    public sealed record CreateOrganizationRequest(string Name, string Logo);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("organizations", async (
-            Request request,
+            CreateOrganizationRequest request,
             ICommandHandler<CreateOrganizationCommand, Guid> handler,
             CancellationToken cancellationToken) =>
         {
@@ -25,6 +25,10 @@ internal sealed class Create : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Organizations)
-        .HasPermission(Permissions.Organizations.Create);
+        .WithName("CreateOrganization")
+        .WithSummary("Create a new organization.")
+        .HasPermission(Permissions.Organizations.Create)
+        .Produces<Guid>(StatusCodes.Status200OK)
+        .ProducesValidationError();
     }
 }

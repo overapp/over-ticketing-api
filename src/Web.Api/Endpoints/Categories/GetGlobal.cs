@@ -24,6 +24,9 @@ internal sealed class GetGlobal : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Categories)
-        .HasPermission(Permissions.Categories.Manage);
+        .WithName("GetGlobalTicketCategories")
+        .WithSummary("List the ticket categories available to all projects.")
+        .HasPermission(Permissions.Categories.Manage)
+        .Produces<IReadOnlyCollection<TicketCategoryResponse>>(StatusCodes.Status200OK);
     }
 }

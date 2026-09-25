@@ -12,13 +12,13 @@ internal sealed class Update : IEndpoint
         bool NotifyOnTicketCreated,
         bool NotifyOnTicketReply);
 
-    public sealed record Request(
+    public sealed record UpdateSettingsRequest(
         EmailNotificationSettingsRequest EmailNotifications);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("settings", async (
-            Request request,
+            UpdateSettingsRequest request,
             ICommandHandler<UpdateUserSettingsCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -32,6 +32,11 @@ internal sealed class Update : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Settings)
-        .RequireAuthorization();
+        .WithName("UpdateUserSettings")
+        .WithSummary("Update the authenticated user's email notification preferences.")
+        .RequireAuthorization()
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Users.NotFound", "No user exists for the current caller.");
     }
 }

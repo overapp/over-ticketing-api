@@ -1,6 +1,6 @@
 using Domain.Projects;
 
-namespace Application.Projects.Get;
+namespace Application.Projects;
 
 public sealed record ProjectResponse
 {

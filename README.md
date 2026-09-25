@@ -58,12 +58,19 @@ generate a development key pair once and provide it to the app via configuration
    openssl rsa -pubout -in jwt-private.pem -outform DER | base64 | tr -d '\n' > jwt-public.b64
    ```
 
-3. Store the keys as user secrets for local development (run from `src/Web.Api`):
+3. Store the keys as user secrets for local development. The Aspire AppHost reads them as the
+   `jwt-private-key` / `jwt-public-key` secret parameters and passes them to the API; the
+   `src/Web.Api` secrets are only needed when running the API without Aspire:
 
    ```bash
-   dotnet user-secrets set "Jwt:PrivateKey" "$(cat jwt-private.b64)"
-   dotnet user-secrets set "Jwt:PublicKey" "$(cat jwt-public.b64)"
+   dotnet user-secrets set "Parameters:jwt-private-key" "$(cat jwt-private.b64)" --project aspire/AppHost
+   dotnet user-secrets set "Parameters:jwt-public-key" "$(cat jwt-public.b64)" --project aspire/AppHost
+
+   dotnet user-secrets set "Jwt:PrivateKey" "$(cat jwt-private.b64)" --project src/Web.Api
+   dotnet user-secrets set "Jwt:PublicKey" "$(cat jwt-public.b64)" --project src/Web.Api
    ```
+
+   The integration tests start the AppHost, so they need the AppHost secrets too.
 
 4. Delete the intermediate PEM/base64 files (`jwt-private.pem`, `jwt-public.pem`, `jwt-private.b64`,
    `jwt-public.b64`) once the secrets are stored — they should never be committed to source control.

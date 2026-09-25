@@ -1,6 +1,6 @@
 using Application.Abstractions.Authentication;
 using Application.UnitTests.Abstractions;
-using Application.Users.GetById;
+using Application.Users;
 using Application.Users.GetMe;
 using Domain.Users;
 using Microsoft.AspNetCore.Identity;

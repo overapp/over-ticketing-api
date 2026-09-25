@@ -1,4 +1,5 @@
 using Application.Abstractions.Messaging;
+using Application.Projects;
 
 namespace Application.Projects.GetById;
 

@@ -1,3 +1,4 @@
+using Application.Projects;
 using Application.Projects.GetById;
 using Application.UnitTests.Abstractions;
 using Domain.Projects;

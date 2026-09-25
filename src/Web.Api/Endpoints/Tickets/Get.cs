@@ -41,6 +41,10 @@ internal sealed class Get : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Tickets)
-        .HasPermission(Permissions.Tickets.Read);
+        .WithName("GetTickets")
+        .WithSummary("List a project's tickets, with search, status, priority and assignee filters.")
+        .HasPermission(Permissions.Tickets.Read)
+        .Produces<PagedResponse<TicketSummaryResponse>>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.UserNotInProject", "The caller is not assigned to the specified project.");
     }
 }

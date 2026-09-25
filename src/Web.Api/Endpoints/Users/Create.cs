@@ -9,7 +9,7 @@ namespace Web.Api.Endpoints.Users;
 
 internal sealed class Create : IEndpoint
 {
-    public sealed record Request(
+    public sealed record CreateUserRequest(
         string Email,
         string FirstName,
         string LastName,
@@ -18,7 +18,7 @@ internal sealed class Create : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("users", async (
-            Request request,
+            CreateUserRequest request,
             ICommandHandler<CreateUserCommand, Guid> handler,
             CancellationToken cancellationToken) =>
         {
@@ -33,6 +33,11 @@ internal sealed class Create : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .HasPermission(Permissions.Users.Create)
-        .WithTags(Tags.Users);
+        .WithTags(Tags.Users)
+        .WithName("CreateUser")
+        .WithSummary("Create a new user with a system-generated temporary password.")
+        .Produces<Guid>(StatusCodes.Status200OK)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status409Conflict, "Users.DuplicateEmail", "A user with the provided email already exists.");
     }
 }

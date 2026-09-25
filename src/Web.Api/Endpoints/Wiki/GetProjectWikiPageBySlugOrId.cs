@@ -27,6 +27,13 @@ internal sealed class GetProjectWikiPageBySlugOrId : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Wiki)
-        .HasPermission(Permissions.Wiki.Read);
+        .WithName("GetProjectWikiPageBySlugOrId")
+        .WithSummary("Retrieve a project wiki page by its slug or Id.")
+        .HasPermission(Permissions.Wiki.Read)
+        .Produces<ProjectWikiPageResponse>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "WikiPages.UnauthorizedAccess", "The caller is not assigned to this project, or can only read published, non-internal pages.")
+        .ProducesError(StatusCodes.Status404NotFound, "WikiPages.NotFound", "No wiki page exists with the specified Id.")
+        .ProducesError(StatusCodes.Status404NotFound, "WikiPages.NotFoundBySlug", "No wiki page exists with the specified slug.");
     }
 }

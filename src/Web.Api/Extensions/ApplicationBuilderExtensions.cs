@@ -1,4 +1,5 @@
-﻿using Scalar.AspNetCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Scalar.AspNetCore;
 
 namespace Web.Api.Extensions;
 
@@ -10,7 +11,12 @@ public static class ApplicationBuilderExtensions
         {
             options
                 .WithTitle("OverTicketing API")
-                .WithTheme(ScalarTheme.Default);
+                .WithClassicLayout()
+                .ForceLightMode()
+                .WithTheme(ScalarTheme.BluePlanet)
+                .WithOperationTitleSource(OperationTitleSource.Summary)
+                .AddPreferredSecuritySchemes(JwtBearerDefaults.AuthenticationScheme)
+                .EnablePersistentAuthentication();
         });
 
         return app;

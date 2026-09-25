@@ -1,3 +1,4 @@
+using Application.Organizations;
 using Application.Organizations.GetById;
 using Application.UnitTests.Abstractions;
 using Domain.Organizations;

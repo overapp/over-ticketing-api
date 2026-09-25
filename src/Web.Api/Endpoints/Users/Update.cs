@@ -9,7 +9,7 @@ namespace Web.Api.Endpoints.Users;
 
 internal sealed class Update : IEndpoint
 {
-    public sealed record Request(
+    public sealed record UpdateUserRequest(
         string Email,
         string FirstName,
         string LastName,
@@ -19,7 +19,7 @@ internal sealed class Update : IEndpoint
     {
         app.MapPut("users/{userId:guid}", async (
             Guid userId,
-            Request request,
+            UpdateUserRequest request,
             ICommandHandler<UpdateUserCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -35,6 +35,14 @@ internal sealed class Update : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .HasPermission(Permissions.Users.Edit)
-        .WithTags(Tags.Users);
+        .WithTags(Tags.Users)
+        .WithName("UpdateUser")
+        .WithSummary("Update a user's profile and role assignments.")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Users.NotFound", "No user exists with the specified Id.")
+        .ProducesError(StatusCodes.Status409Conflict, "Users.DuplicateEmail", "Another user already uses the provided email.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Users.CannotDemoteSelf", "You cannot revoke your own administrator role.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Users.CannotDemoteLastAdmin", "The last administrator account cannot be demoted.");
     }
 }

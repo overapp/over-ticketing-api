@@ -502,6 +502,10 @@ namespace Infrastructure.Database.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("phone_number_confirmed");
 
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("profile_picture_url");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("security_stamp");

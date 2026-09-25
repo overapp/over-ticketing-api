@@ -26,6 +26,12 @@ internal sealed class GetGlobalWikiPageBySlugOrId : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Wiki)
-        .HasPermission(Permissions.Wiki.Read);
+        .WithName("GetGlobalWikiPageBySlugOrId")
+        .WithSummary("Retrieve a global wiki page by its slug or Id.")
+        .HasPermission(Permissions.Wiki.Read)
+        .Produces<GlobalWikiPageResponse>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status404NotFound, "WikiPages.NotFound", "No wiki page exists with the specified Id.")
+        .ProducesError(StatusCodes.Status404NotFound, "WikiPages.NotFoundBySlug", "No wiki page exists with the specified slug.")
+        .ProducesError(StatusCodes.Status400BadRequest, "WikiPages.UnauthorizedAccess", "Standard users can only read published, non-internal pages.");
     }
 }

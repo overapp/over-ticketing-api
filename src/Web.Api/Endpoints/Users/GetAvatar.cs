@@ -1,6 +1,7 @@
 using Application.Abstractions.Messaging;
 using Application.Users.GetAvatar;
 using SharedKernel;
+using Web.Api.Extensions;
 using Web.Api.Infrastructure;
 
 namespace Web.Api.Endpoints.Users;
@@ -26,6 +27,12 @@ internal sealed class GetAvatar : IEndpoint
             return Results.File(result.Value.Stream, result.Value.ContentType);
         })
         .WithTags(Tags.Users)
-        .AllowAnonymous();
+        .WithName("GetUserAvatar")
+        .WithSummary("Download a user's profile picture.")
+        .AllowAnonymous()
+        .Produces(StatusCodes.Status200OK, contentType: "application/octet-stream")
+        .ProducesError(StatusCodes.Status404NotFound, "Users.NotFound", "No user exists with the specified Id.")
+        .ProducesError(StatusCodes.Status404NotFound, "Users.AvatarNotFound", "The user has no avatar uploaded.")
+        .ProducesError(StatusCodes.Status404NotFound, "Users.AvatarFileNotFound", "The avatar file was not found on storage.");
     }
 }

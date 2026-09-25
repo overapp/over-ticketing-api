@@ -21,6 +21,11 @@ internal sealed class Delete : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Projects)
-        .HasPermission(Permissions.Projects.Delete);
+        .WithName("DeleteProject")
+        .WithSummary("Permanently delete a project.")
+        .HasPermission(Permissions.Projects.Delete)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.");
     }
 }

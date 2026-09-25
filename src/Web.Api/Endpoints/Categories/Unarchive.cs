@@ -23,6 +23,12 @@ internal sealed class Unarchive : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Categories)
-        .HasPermission(Permissions.Categories.Manage);
+        .WithName("UnarchiveTicketCategory")
+        .WithSummary("Reactivate an archived ticket category.")
+        .HasPermission(Permissions.Categories.Manage)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "TicketCategories.NotFound", "No ticket category exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "TicketCategories.AlreadyActive", "The ticket category is already active.");
     }
 }
