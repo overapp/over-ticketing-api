@@ -9,12 +9,12 @@ namespace Web.Api.Endpoints.Projects;
 
 internal sealed class Create : IEndpoint
 {
-    public sealed record Request(Guid OrganizationId, string Name, string Description);
+    public sealed record CreateProjectRequest(Guid OrganizationId, string Name, string Description);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("projects", async (
-            Request request,
+            CreateProjectRequest request,
             ICommandHandler<CreateProjectCommand, Guid> handler,
             CancellationToken cancellationToken) =>
         {
@@ -25,6 +25,11 @@ internal sealed class Create : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Projects)
-        .HasPermission(Permissions.Projects.Create);
+        .WithName("CreateProject")
+        .WithSummary("Create a new project under an organization.")
+        .HasPermission(Permissions.Projects.Create)
+        .Produces<Guid>(StatusCodes.Status200OK)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Organizations.NotFound", "No organization exists with the specified Id.");
     }
 }

@@ -1,5 +1,5 @@
 using Application.Abstractions.Messaging;
-using Application.Users.GetById;
+using Application.Users;
 
 namespace Application.Users.GetMe;
 

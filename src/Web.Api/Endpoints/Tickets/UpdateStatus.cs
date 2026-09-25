@@ -10,13 +10,13 @@ namespace Web.Api.Endpoints.Tickets;
 
 internal sealed class UpdateStatus : IEndpoint
 {
-    public sealed record Request(TicketStatus Status);
+    public sealed record UpdateTicketStatusRequest(TicketStatus Status);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("tickets/{ticketId:guid}/status", async (
             Guid ticketId,
-            Request request,
+            UpdateTicketStatusRequest request,
             ICommandHandler<UpdateTicketStatusCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -27,6 +27,15 @@ internal sealed class UpdateStatus : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Tickets)
-        .HasPermission(Permissions.Tickets.StatusUpdate);
+        .WithName("UpdateTicketStatus")
+        .WithSummary("Transition a ticket to a new status.")
+        .HasPermission(Permissions.Tickets.StatusUpdate)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Tickets.NotFound", "No ticket exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.Closed", "The ticket is closed and cannot be modified.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.UserNotInProject", "The caller is not assigned to the ticket's project.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.UnauthorizedAccess", "Standard users can only update their own tickets.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.InvalidStatusTransition", "Standard users may only transition their own ticket to Resolved or Closed.");
     }
 }

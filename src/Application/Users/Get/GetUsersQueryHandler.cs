@@ -1,7 +1,7 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
 using Application.Common;
-using Application.Users.GetById;
+using Application.Users;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
 
@@ -69,7 +69,8 @@ internal sealed class GetUsersQueryHandler(IApplicationDbContext context)
                 u.LastName,
                 Email = u.Email ?? string.Empty,
                 u.EmailConfirmed,
-                u.MustChangePassword
+                u.MustChangePassword,
+                u.ProfilePictureUrl
             })
             .ToListAsync(cancellationToken);
 
@@ -95,6 +96,7 @@ internal sealed class GetUsersQueryHandler(IApplicationDbContext context)
             Email = u.Email,
             EmailConfirmed = u.EmailConfirmed,
             MustChangePassword = u.MustChangePassword,
+            AvatarUrl = UserAvatarUrlHelper.GetAvatarUrl(u.Id, u.ProfilePictureUrl),
             Roles = lookup.GetValueOrDefault(u.Id, [])
         }).ToList();
 

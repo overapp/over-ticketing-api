@@ -8,7 +8,7 @@ namespace Web.Api.Endpoints.Auth;
 
 internal sealed class ResetPassword : IEndpoint
 {
-    public sealed record Request(
+    public sealed record ResetPasswordRequest(
         string Email,
         string Token,
         string NewPassword,
@@ -17,7 +17,7 @@ internal sealed class ResetPassword : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("auth/reset-password", async (
-            Request request,
+            ResetPasswordRequest request,
             ICommandHandler<ResetPasswordCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -32,6 +32,11 @@ internal sealed class ResetPassword : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Auth)
-        .RequireRateLimiting(RateLimitingPolicies.Authentication);
+        .WithName("ResetPassword")
+        .WithSummary("Set a new password using a password reset token.")
+        .RequireRateLimiting(RateLimitingPolicies.Authentication)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status400BadRequest, "Users.InvalidPasswordResetToken", "The provided password reset token is invalid, expired, or the email does not match an existing user.");
     }
 }

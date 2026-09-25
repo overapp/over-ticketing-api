@@ -23,6 +23,11 @@ internal sealed class ResetPasswordByAdmin : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .HasPermission(Permissions.Users.Edit)
-        .WithTags(Tags.Users);
+        .WithTags(Tags.Users)
+        .WithName("AdminResetUserPassword")
+        .WithSummary("Issue a new temporary password for a user and revoke their active sessions.")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Users.NotFound", "No user exists with the specified Id.");
     }
 }

@@ -1,5 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.Common;
+using Application.Projects;
 using Domain.Projects;
 
 namespace Application.Projects.Get;

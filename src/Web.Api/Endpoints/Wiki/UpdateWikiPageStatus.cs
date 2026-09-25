@@ -13,13 +13,13 @@ namespace Web.Api.Endpoints.Wiki;
 
 internal sealed class UpdateWikiPageStatus : IEndpoint
 {
-    public sealed record Request(WikiPageStatus Status);
+    public sealed record UpdateWikiPageStatusRequest(WikiPageStatus Status);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("wiki/{wikiPageId:guid}/status", async (
             Guid wikiPageId,
-            Request request,
+            UpdateWikiPageStatusRequest request,
             ICommandHandler<UpdateWikiPageStatusCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -30,6 +30,14 @@ internal sealed class UpdateWikiPageStatus : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Wiki)
-        .HasPermission(Permissions.Wiki.Edit);
+        .WithName("UpdateWikiPageStatus")
+        .WithSummary("Publish, unpublish or archive a wiki page.")
+        .HasPermission(Permissions.Wiki.Edit)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "WikiPages.NotFound", "No wiki page exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "WikiPages.GlobalPagesRequireAdmin", "Only system administrators can change the status of global wiki pages.")
+        .ProducesError(StatusCodes.Status400BadRequest, "WikiPages.UnauthorizedAccess", "The caller does not have permission to change the status of this wiki page.")
+        .ProducesError(StatusCodes.Status400BadRequest, "WikiPages.HasChildPages", "The wiki page cannot be archived because it has active child pages.");
     }
 }

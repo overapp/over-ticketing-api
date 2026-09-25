@@ -1,5 +1,6 @@
 using Application.Abstractions.Authorization;
 using Application.Abstractions.Messaging;
+using Application.Projects;
 using Application.Projects.GetById;
 using SharedKernel;
 using Web.Api.Extensions;
@@ -23,6 +24,10 @@ internal sealed class GetById : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Projects)
-        .HasPermission(Permissions.Projects.Read);
+        .WithName("GetProjectById")
+        .WithSummary("Retrieve a project by its Id.")
+        .HasPermission(Permissions.Projects.Read)
+        .Produces<ProjectResponse>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.");
     }
 }

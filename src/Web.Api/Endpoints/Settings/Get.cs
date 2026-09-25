@@ -21,6 +21,10 @@ internal sealed class Get : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Settings)
-        .RequireAuthorization();
+        .WithName("GetUserSettings")
+        .WithSummary("Retrieve the authenticated user's notification settings.")
+        .RequireAuthorization()
+        .Produces<UserSettingsResponse>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status404NotFound, "Users.NotFound", "No user exists for the current caller.");
     }
 }

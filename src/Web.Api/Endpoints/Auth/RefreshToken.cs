@@ -9,12 +9,12 @@ namespace Web.Api.Endpoints.Auth;
 
 internal sealed class RefreshToken : IEndpoint
 {
-    public sealed record Request(string RefreshToken);
+    public sealed record RefreshTokenRequest(string RefreshToken);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("auth/refresh-token", async (
-            Request request,
+            RefreshTokenRequest request,
             ICommandHandler<RefreshTokenCommand, AccessTokensResponse> handler,
             CancellationToken cancellationToken) =>
         {
@@ -25,6 +25,11 @@ internal sealed class RefreshToken : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Auth)
-        .RequireRateLimiting(RateLimitingPolicies.Authentication);
+        .WithName("RefreshToken")
+        .WithSummary("Exchange a refresh token for a new access and refresh token pair.")
+        .RequireRateLimiting(RateLimitingPolicies.Authentication)
+        .Produces<AccessTokensResponse>(StatusCodes.Status200OK)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status400BadRequest, "Users.InvalidRefreshToken", "The provided refresh token is invalid or has expired.");
     }
 }

@@ -21,6 +21,12 @@ internal sealed class Archive : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Organizations)
-        .HasPermission(Permissions.Organizations.Archive);
+        .WithName("ArchiveOrganization")
+        .WithSummary("Archive an organization.")
+        .HasPermission(Permissions.Organizations.Archive)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Organizations.NotFound", "No organization exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Organizations.AlreadyArchived", "The organization is already archived.");
     }
 }

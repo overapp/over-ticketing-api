@@ -9,13 +9,13 @@ namespace Web.Api.Endpoints.Tickets;
 
 internal sealed class Assign : IEndpoint
 {
-    public sealed record Request(Guid? AssignedToUserId);
+    public sealed record AssignTicketRequest(Guid? AssignedToUserId);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("tickets/{ticketId:guid}/assign", async (
             Guid ticketId,
-            Request request,
+            AssignTicketRequest request,
             ICommandHandler<AssignTicketCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -26,6 +26,15 @@ internal sealed class Assign : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Tickets)
-        .HasPermission(Permissions.Tickets.Assign);
+        .WithName("AssignTicket")
+        .WithSummary("Assign or unassign a ticket to a support user.")
+        .HasPermission(Permissions.Tickets.Assign)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Tickets.NotFound", "No ticket exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.Closed", "The ticket is closed and cannot be modified.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.UserNotInProject", "The caller or the target assignee is not assigned to the ticket's project.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.UnauthorizedAccess", "The caller does not have the Support or Admin role in this project.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.AssigneeNotSupport", "The target user does not have the Support role in this project.");
     }
 }

@@ -1,4 +1,5 @@
 using Application.Common;
+using Application.Organizations;
 using Application.Organizations.Get;
 using Application.UnitTests.Abstractions;
 using Domain.Organizations;

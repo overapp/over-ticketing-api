@@ -10,13 +10,13 @@ namespace Web.Api.Endpoints.Tickets;
 
 internal sealed class UpdatePriority : IEndpoint
 {
-    public sealed record Request(TicketPriority Priority);
+    public sealed record UpdateTicketPriorityRequest(TicketPriority Priority);
 
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPut("tickets/{ticketId:guid}/priority", async (
             Guid ticketId,
-            Request request,
+            UpdateTicketPriorityRequest request,
             ICommandHandler<UpdateTicketPriorityCommand> handler,
             CancellationToken cancellationToken) =>
         {
@@ -27,6 +27,14 @@ internal sealed class UpdatePriority : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Tickets)
-        .HasPermission(Permissions.Tickets.PriorityUpdate);
+        .WithName("UpdateTicketPriority")
+        .WithSummary("Change a ticket's priority and recalculate its SLA due dates.")
+        .HasPermission(Permissions.Tickets.PriorityUpdate)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Tickets.NotFound", "No ticket exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.Closed", "The ticket is closed and cannot be modified.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.UserNotInProject", "The caller is not assigned to the ticket's project.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.UnauthorizedAccess", "The caller does not have the Support or Admin role in this project.");
     }
 }

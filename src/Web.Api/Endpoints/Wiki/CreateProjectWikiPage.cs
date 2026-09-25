@@ -12,7 +12,7 @@ namespace Web.Api.Endpoints.Wiki;
 
 internal sealed class CreateProjectWikiPage : IEndpoint
 {
-    public sealed record Request(
+    public sealed record CreateProjectWikiPageRequest(
         string Title,
         string? Slug,
         string Content,
@@ -23,7 +23,7 @@ internal sealed class CreateProjectWikiPage : IEndpoint
     {
         app.MapPost("projects/{projectId:guid}/wiki", async (
             Guid projectId,
-            Request request,
+            CreateProjectWikiPageRequest request,
             ICommandHandler<CreateProjectWikiPageCommand, Guid> handler,
             CancellationToken cancellationToken) =>
         {
@@ -42,6 +42,15 @@ internal sealed class CreateProjectWikiPage : IEndpoint
                 CustomResults.Problem);
         })
         .WithTags(Tags.Wiki)
-        .HasPermission(Permissions.Wiki.Create);
+        .WithName("CreateProjectWikiPage")
+        .WithSummary("Create a wiki page scoped to a project.")
+        .HasPermission(Permissions.Wiki.Create)
+        .Produces<Guid>(StatusCodes.Status201Created)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "WikiPages.UnauthorizedAccess", "The caller does not have permission to create wiki pages in this project.")
+        .ProducesError(StatusCodes.Status404NotFound, "WikiPages.ParentNotFound", "No parent wiki page exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "WikiPages.ParentScopeMismatch", "The parent page belongs to a different project or scope.")
+        .ProducesError(StatusCodes.Status409Conflict, "WikiPages.SlugAlreadyExists", "A wiki page with the resulting slug already exists in this scope.");
     }
 }

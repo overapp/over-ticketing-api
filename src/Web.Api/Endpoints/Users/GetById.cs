@@ -1,5 +1,6 @@
 using Application.Abstractions.Authorization;
 using Application.Abstractions.Messaging;
+using Application.Users;
 using Application.Users.GetById;
 using SharedKernel;
 using Web.Api.Extensions;
@@ -23,6 +24,10 @@ internal sealed class GetById : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .HasPermission(Permissions.Users.Read)
-        .WithTags(Tags.Users);
+        .WithTags(Tags.Users)
+        .WithName("GetUserById")
+        .WithSummary("Retrieve a user by their Id.")
+        .Produces<UserResponse>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status404NotFound, "Users.NotFound", "No user exists with the specified Id.");
     }
 }

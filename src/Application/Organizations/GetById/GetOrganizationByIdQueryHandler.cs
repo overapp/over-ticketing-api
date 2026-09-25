@@ -1,5 +1,6 @@
 using Application.Abstractions.Data;
 using Application.Abstractions.Messaging;
+using Application.Organizations;
 using Domain.Organizations;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;

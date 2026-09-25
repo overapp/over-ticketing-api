@@ -1,4 +1,5 @@
 using Application.Common;
+using Application.Projects;
 using Application.Projects.Get;
 using Application.UnitTests.Abstractions;
 using Domain.Projects;

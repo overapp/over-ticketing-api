@@ -21,6 +21,12 @@ internal sealed class Unarchive : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Projects)
-        .HasPermission(Permissions.Projects.Archive);
+        .WithName("UnarchiveProject")
+        .WithSummary("Reactivate an archived project.")
+        .HasPermission(Permissions.Projects.Archive)
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Projects.AlreadyActive", "The project is already active.");
     }
 }

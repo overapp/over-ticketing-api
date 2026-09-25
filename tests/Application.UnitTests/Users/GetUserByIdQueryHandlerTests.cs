@@ -1,4 +1,5 @@
 using Application.UnitTests.Abstractions;
+using Application.Users;
 using Application.Users.GetById;
 using Domain.Users;
 using Microsoft.AspNetCore.Identity;

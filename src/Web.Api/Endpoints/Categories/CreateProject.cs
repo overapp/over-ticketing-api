@@ -9,7 +9,7 @@ namespace Web.Api.Endpoints.Categories;
 
 internal sealed class CreateProject : IEndpoint
 {
-    public sealed record Request(
+    public sealed record CreateProjectCategoryRequest(
         string Name,
         string? Description,
         string? BackgroundColor,
@@ -19,7 +19,7 @@ internal sealed class CreateProject : IEndpoint
     {
         app.MapPost("projects/{projectId:guid}/categories", async (
             Guid projectId,
-            Request request,
+            CreateProjectCategoryRequest request,
             ICommandHandler<CreateProjectTicketCategoryCommand, Guid> handler,
             CancellationToken cancellationToken) =>
         {
@@ -37,6 +37,12 @@ internal sealed class CreateProject : IEndpoint
                 CustomResults.Problem);
         })
         .WithTags(Tags.Categories)
-        .HasPermission(Permissions.Categories.Manage);
+        .WithName("CreateProjectTicketCategory")
+        .WithSummary("Create a ticket category scoped to a single project.")
+        .HasPermission(Permissions.Categories.Manage)
+        .Produces<Guid>(StatusCodes.Status201Created)
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.")
+        .ProducesError(StatusCodes.Status409Conflict, "TicketCategories.NameNotUnique", "A ticket category with the given name already exists in this project.");
     }
 }

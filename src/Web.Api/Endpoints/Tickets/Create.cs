@@ -65,7 +65,18 @@ internal sealed class Create : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Tickets)
+        .WithName("CreateTicket")
+        .WithSummary("Open a new support ticket with an initial message and optional attachments.")
         .DisableAntiforgery()
-        .HasPermission(Permissions.Tickets.Create);
+        .HasPermission(Permissions.Tickets.Create)
+        .Produces<Guid>(StatusCodes.Status200OK)
+        .Produces<string>(StatusCodes.Status400BadRequest, "text/plain")
+        .ProducesValidationError()
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Projects.AlreadyArchived", "The project is archived and cannot receive new tickets.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.UserNotInProject", "The caller is not assigned to the specified project.")
+        .ProducesError(StatusCodes.Status404NotFound, "TicketCategories.NotFound", "No ticket category exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "TicketCategories.CategoryArchived", "The ticket category is archived and cannot be assigned.")
+        .ProducesError(StatusCodes.Status400BadRequest, "TicketCategories.InvalidForProject", "The ticket category does not belong to the specified project.");
     }
 }

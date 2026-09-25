@@ -1,6 +1,6 @@
 using Application.Abstractions.Messaging;
 using Application.Common;
-using Application.Users.GetById;
+using Application.Users;
 
 namespace Application.Users.Get;
 

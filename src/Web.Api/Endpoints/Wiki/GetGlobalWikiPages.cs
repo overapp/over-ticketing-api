@@ -37,6 +37,9 @@ internal sealed class GetGlobalWikiPages : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Wiki)
-        .HasPermission(Permissions.Wiki.Read);
+        .WithName("GetGlobalWikiPages")
+        .WithSummary("List global wiki pages.")
+        .HasPermission(Permissions.Wiki.Read)
+        .Produces<PagedResponse<GlobalWikiPageSummaryResponse>>(StatusCodes.Status200OK);
     }
 }

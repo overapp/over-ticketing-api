@@ -1,6 +1,6 @@
 using Domain.Organizations;
 
-namespace Application.Organizations.Get;
+namespace Application.Organizations;
 
 public sealed record OrganizationResponse
 {

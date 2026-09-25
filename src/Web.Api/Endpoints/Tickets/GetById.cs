@@ -23,6 +23,12 @@ internal sealed class GetById : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Tickets)
-        .HasPermission(Permissions.Tickets.Read);
+        .WithName("GetTicketById")
+        .WithSummary("Retrieve a ticket with its full message history.")
+        .HasPermission(Permissions.Tickets.Read)
+        .Produces<TicketDetailResponse>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status404NotFound, "Tickets.NotFound", "No ticket exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.UserNotInProject", "The caller is not assigned to the ticket's project.")
+        .ProducesError(StatusCodes.Status400BadRequest, "Tickets.UnauthorizedAccess", "Standard users can only view tickets they created.");
     }
 }

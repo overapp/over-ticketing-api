@@ -1,6 +1,7 @@
 using Application.Abstractions.Authorization;
 using Application.Abstractions.Messaging;
 using Application.Common;
+using Application.Organizations;
 using Application.Organizations.Get;
 using Domain.Organizations;
 using SharedKernel;
@@ -11,7 +12,7 @@ namespace Web.Api.Endpoints.Organizations;
 
 internal sealed class Get : IEndpoint
 {
-    public sealed record Request(
+    public sealed record GetOrganizationsRequest(
         int Page = 1,
         int PageSize = 10,
         string? SearchTerm = null,
@@ -20,7 +21,7 @@ internal sealed class Get : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("organizations", async (
-            [AsParameters] Request request,
+            [AsParameters] GetOrganizationsRequest request,
             IQueryHandler<GetOrganizationsQuery, PagedResponse<OrganizationResponse>> handler,
             CancellationToken cancellationToken) =>
         {
@@ -35,6 +36,9 @@ internal sealed class Get : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Organizations)
-        .HasPermission(Permissions.Organizations.Read);
+        .WithName("GetOrganizations")
+        .WithSummary("List organizations, with optional search and status filters.")
+        .HasPermission(Permissions.Organizations.Read)
+        .Produces<PagedResponse<OrganizationResponse>>(StatusCodes.Status200OK);
     }
 }

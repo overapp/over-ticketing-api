@@ -39,6 +39,11 @@ internal sealed class GetProjectWikiPages : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Wiki)
-        .HasPermission(Permissions.Wiki.Read);
+        .WithName("GetProjectWikiPages")
+        .WithSummary("List a project's wiki pages.")
+        .HasPermission(Permissions.Wiki.Read)
+        .Produces<PagedResponse<WikiPageSummaryResponse>>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status404NotFound, "Projects.NotFound", "No project exists with the specified Id.")
+        .ProducesError(StatusCodes.Status400BadRequest, "WikiPages.UnauthorizedAccess", "The caller is not assigned to this project.");
     }
 }

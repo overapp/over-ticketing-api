@@ -15,9 +15,17 @@ internal sealed class UpdateAvatar : IEndpoint
     {
         app.MapPost("users/{userId:guid}/avatar", Handle)
             .WithTags(Tags.Users)
+            .WithName("UpdateUserAvatar")
+            .WithSummary("Upload or replace the user's profile picture.")
             .DisableAntiforgery()
             .RequireAuthorization()
-            .HasPermission(Permissions.Users.Edit);
+            .HasPermission(Permissions.Users.Edit)
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces<string>(StatusCodes.Status400BadRequest, "text/plain")
+            .ProducesValidationError()
+            .ProducesError(StatusCodes.Status404NotFound, "Users.NotFound", "No user exists with the specified Id.")
+            .ProducesError(StatusCodes.Status500InternalServerError, "Users.UpdateFailed", "Failed to update the user with the new avatar.");
     }
 
     private static async Task<IResult> Handle(

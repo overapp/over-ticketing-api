@@ -1,5 +1,5 @@
 using Application.Abstractions.Messaging;
-using Application.Users.GetById;
+using Application.Users;
 using Application.Users.GetMe;
 using SharedKernel;
 using Web.Api.Extensions;
@@ -22,6 +22,10 @@ internal sealed class GetMe : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .RequireAuthorization()
-        .WithTags(Tags.Auth);
+        .WithTags(Tags.Auth)
+        .WithName("GetCurrentUser")
+        .WithSummary("Retrieve the profile of the currently authenticated user.")
+        .Produces<UserResponse>(StatusCodes.Status200OK)
+        .ProducesError(StatusCodes.Status404NotFound, "Users.NotFound", "No user exists for the current caller.");
     }
 }
