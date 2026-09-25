@@ -11,7 +11,9 @@ public static class ApplicationBuilderExtensions
         {
             options
                 .WithTitle("OverTicketing API")
-                .WithTheme(ScalarTheme.Default)
+                .WithClassicLayout()
+                .ForceLightMode()
+                .WithTheme(ScalarTheme.BluePlanet)
                 .WithOperationTitleSource(OperationTitleSource.Summary)
                 .AddPreferredSecuritySchemes(JwtBearerDefaults.AuthenticationScheme)
                 .EnablePersistentAuthentication();
